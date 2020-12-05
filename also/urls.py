@@ -15,9 +15,10 @@ Including another URLconf
 """
 from django.urls import path
 
-from .views import DefaultView, ResultView
+from .views import DefaultView, ResultView, SuggestView
 
 urlpatterns = [
     path('', DefaultView.as_view(), name="default"),
     path('s', ResultView.as_view(), name="result"),
+    path("sug", SuggestView.as_view(), name="suggest"),
 ]
