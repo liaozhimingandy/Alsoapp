@@ -15,11 +15,11 @@ class ResultView(View):
         # print(request.GET.get("q"))
         context = dict()
         context["q"] = request.GET.get("q")
-        content_result_right = [i for i in range(80)]
+        content_result_right = [i for i in range(109)]
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
-            page = request.GET.get('page')
+            page = request.GET.get('p')
             content_result_right_page = paginator.page(page)
             # todo: 注意捕获异常
         except PageNotAnInteger:

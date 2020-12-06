@@ -71,20 +71,46 @@
                 <div class="card-body">
                     <div id="pages" class="text-center">
                         <nav>
-                            <ul class="pagination">
+                            <ul class="pagination justify-content-center">
                                 <li class="page-item">
                                     {% if content_result_right.has_previous %}
                                         <a class='active page-link'
-                                           href="?page={{ content_result_right.previous_page_number }}">上一页</a>
+                                           href="?p={{ content_result_right.previous_page_number }}">上一页</a>
                                     {% endif %}
+                                </li>
+                                <li class="page-item">
+                                    {% if content_result_right.number > 2 %}
+                                        <a class='active page-link'
+                                           href="?p=1">1</a>
+                                    {% endif %}
+                                </li>
+                                <li class="page-item">
+                                    {% if content_result_right.has_previous %}
+                                        <a class='active page-link'
+                                           href="?p={{ content_result_right.previous_page_number }}">{{ content_result_right.previous_page_number }}</a>
+                                    {% endif %}
+                                </li>
                                 <li class="page-item active">
                                     <span class="current page-link">
                     第 {{ content_result_right.number }} 页, 共 {{ content_result_right.paginator.num_pages }}页</span>
                                 </li>
-                                {% if content_result_right.has_next %}
-                                    <a class='active page-link'
-                                       href="?page={{ content_result_right.next_page_number }}">下一页</a>
-                                {% endif %}
+                                <li class="page-item">
+                                    {% if content_result_right.has_next %}
+                                        <a class='active page-link'
+                                           href="?p={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
+                                    {% endif %}
+                                </li>
+                                <li class="page-item">
+                                    {% if content_result_right.paginator.num_pages > content_result_right.next_page_number %}
+                                        <a class='active page-link'
+                                           href="?p={{ content_result_right.paginator.num_pages }}">{{ content_result_right.paginator.num_pages }}</a>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    {% if content_result_right.has_next %}
+                                        <a class='active page-link'
+                                           href="?p={{ content_result_right.next_page_number }}">下一页</a>
+                                    {% endif %}
                                 </li>
                             </ul>
                         </nav>
