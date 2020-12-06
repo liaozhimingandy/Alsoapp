@@ -9,7 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
           integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-     <!--   自动填充样式-->
+    <!--   自动填充样式-->
     <link rel="stylesheet" href="{% static 'also/css/autocompleter.css' %}">
     <style>
         body {
@@ -52,8 +52,49 @@
     </nav>
     <!-- /.navbar -->
     <!--    结果展示-->
-    <div class="row pl-5">
-        <div class="col-lg-10"><h1>beta...</h1></div>
+    <div class="row pt-2 pl-5" id="wrapper_wrapper">
+        <div class="col-lg-6" id="content_left">
+            <div class="alert alert-light" role="alert">
+                A simple primary alert—check it out!
+            </div>
+            {% for i in content_result_right %}
+                <div class="card">
+                    <div class="card-body">
+                        This is some text within a card body.{{ i }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            {# 实现分页标签的代码 #}
+            {# 这里使用 bootstrap 渲染页面 #}
+            <div class="card" style="margin-bottom: 60px;">
+                <div class="card-body">
+                    <div id="pages" class="text-center">
+                        <nav>
+                            <ul class="pagination">
+                                <li class="page-item">
+                                    {% if content_result_right.has_previous %}
+                                        <a class='active page-link'
+                                           href="?page={{ content_result_right.previous_page_number }}">上一页</a>
+                                    {% endif %}
+                                <li class="page-item active">
+                                    <span class="current page-link">
+                    第 {{ content_result_right.number }} 页, 共 {{ content_result_right.paginator.num_pages }}页</span>
+                                </li>
+                                {% if content_result_right.has_next %}
+                                    <a class='active page-link'
+                                       href="?page={{ content_result_right.next_page_number }}">下一页</a>
+                                {% endif %}
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {#        右边#}
+        <div class="col-lg-3" id="content-right"><h1>推荐</h1></div>
+
     </div>
 
     <!--    footer-->
