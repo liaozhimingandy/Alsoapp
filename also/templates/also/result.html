@@ -78,34 +78,22 @@
                                            href="?p={{ content_result_right.previous_page_number }}">上一页</a>
                                     {% endif %}
                                 </li>
-                                <li class="page-item">
-                                    {% if content_result_right.number > 2 %}
-                                        <a class='active page-link'
-                                           href="?p=1">1</a>
+                                {% for index in content_result_right.paginator.page_range %}
+                                    <!-- 如果页码列表里的一个数字正好和当前展示的这个page对象的页码一样，那么就让这个数字归为active类，也就是给它添加背景颜色。这样我们就能一眼看出我们现在处于哪一页。并且因为我们就处于这一页，所以这个数字不需要链接。 -->
+                                    {% if index == content_result_right.number %}
+                                        <li class="page-item active"><a class="page-link">{{ index }}</a></li>
+                                        <!-- 其他页码需要链接，不需要背景颜色 -->
+                                    {% elif index <= 8 %}
+                                        <li class="page-item"><a class="page-link" href="?p={{ index }}">{{ index }}</a>
+                                        </li>
                                     {% endif %}
-                                </li>
-                                <li class="page-item">
-                                    {% if content_result_right.has_previous %}
-                                        <a class='active page-link'
-                                           href="?p={{ content_result_right.previous_page_number }}">{{ content_result_right.previous_page_number }}</a>
-                                    {% endif %}
-                                </li>
-                                <li class="page-item active">
-                                    <span class="current page-link">
-                    第 {{ content_result_right.number }} 页, 共 {{ content_result_right.paginator.num_pages }}页</span>
-                                </li>
-                                <li class="page-item">
-                                    {% if content_result_right.has_next %}
-                                        <a class='active page-link'
+                                {% endfor %}
+                                {% if content_result_right.number > 8 and content_result_right.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
                                            href="?p={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
-                                    {% endif %}
-                                </li>
-                                <li class="page-item">
-                                    {% if content_result_right.paginator.num_pages > content_result_right.next_page_number %}
-                                        <a class='active page-link'
-                                           href="?p={{ content_result_right.paginator.num_pages }}">{{ content_result_right.paginator.num_pages }}</a>
-                                    {% endif %}
-                                </li>
+                                    </li>
+                                {% endif %}
                                 <li>
                                     {% if content_result_right.has_next %}
                                         <a class='active page-link'

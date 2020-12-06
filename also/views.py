@@ -15,7 +15,7 @@ class ResultView(View):
         # print(request.GET.get("q"))
         context = dict()
         context["q"] = request.GET.get("q")
-        content_result_right = [i for i in range(109)]
+        content_result_right = [i for i in range(100)]
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
