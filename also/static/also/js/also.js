@@ -11,7 +11,6 @@ const colors =
             "rgb": "(205, 149, 117)"
         }
     ];
-
 $(function () {
     $('#kw').autocompleter({
         // marker for autocomplete matches
@@ -44,17 +43,18 @@ $(function () {
 });
 
 // 文档准备好事件
-/*  $(document).ready(function(){
-      console.info($('#kw').outerWidth());
-      //$('autocompleter').outerWidth($('#kw').outerWidth())
-  });*/
+//  document.ready(function(){
+//       //console.info($('#kw').outerWidth());
+//       //$('autocompleter').outerWidth($('#kw').outerWidth())
+//
+//   });
 
 //搜索按钮触发事件处理
 function to_search(event) {
     var q = $('input[id="kw"]').val();
     if (q === '' || q.length === 0) {
         // 重新定位到本页面
-         window.open("/", "_self");
+        window.open("/", "_self");
     }
     window.open("s?q=" + $('input[id="kw"]').val(), '_blank');
 }

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.views.generic import View  # 导入类试图
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger  # 数据页面分页使用
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 
 # Create your views here.
@@ -11,6 +12,7 @@ class DefaultView(View):
 
 
 class ResultView(View):
+
     def get(self, request):
         # print(request.GET.get("q"))
         context = dict()

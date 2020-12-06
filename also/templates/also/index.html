@@ -17,6 +17,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-6" style="top: 30%; position: absolute;">
             <div class="input-group">
+                {% csrf_token %}
                 <input type="text" id="kw" class="form-control" placeholder="此处输入你要搜索的内容..."
                        onkeydown="enter_search(event)"/>
                 <div class="input-group-append">
@@ -38,9 +39,10 @@
 <!--    footer-->
 <footer class="fixed-bottom bg-light pt-2 pl-2 pr-2" style="height: 40px">
     <div class="float-right d-none d-sm-block">
-        <b>Version</b> 3.0.5
+        <b>Version</b> 1.0@Beta
     </div>
-    <strong>Copyright &copy; 2020 <a href="#">AdminLTE.io</a>.</strong> All rights
+    <strong>Copyright &copy; <span id="years_now" class="font-weight-bold"></span> <a href="#">zhiming</a>.</strong> All
+    rights
     reserved.
 </footer>
 <!-- Optional JavaScript -->
@@ -52,6 +54,13 @@
 <script src="{% static 'also/js/bootstrap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/jquery.autocompleter.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/also.js' %}"></script>
-
+<script type="text/javascript">
+    /*赋值授权时间*/
+    $(function () {
+        const now = new Date();
+        const year = now.getFullYear();
+        $("#years_now").html(year);
+    })
+</script>
 </body>
 </html>
