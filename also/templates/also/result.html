@@ -45,7 +45,9 @@
         <form class="form-inline ml-300">
             <div class="input-group">
                 {% csrf_token %}
-                <input type="text" id="kw" class="form-control" value="{{ q }}" placeholder="此处输入你要搜索的内容..."
+                <input type="text" id="kw" class="form-control"
+                       value="{% if q is not None %}{{ q }} {% else %}此处输入你要搜索的内容...{% endif %}"
+                       placeholder="此处输入你要搜索的内容..."
                        onkeydown="enter_search(event)" style="width: 500px;"/>
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button" onclick="to_search()">
@@ -75,10 +77,10 @@
                             <h5 class="mb-1">List group item heading</h5>
                             <small>3 days ago</small>
                         </div>
-                        <p class="text-break" id="content-resume"><small>来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更
+                        <p class="text-break" id="content-resume">来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更
                             好的讲解这个较为重要的命令行git log,我提前使用git merge featurt.来学习一下git log的操作,这个操作是查看
-                            来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更git操作的日志,所以,让我们学习一下,为了更</small></p>
-                        <small>Donec id elit non mi porta.</small>
+                            来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更git操作的日志,所以,让我们学习一下,为了更</p>
+                        <small>www.baidu.com</small>
                     </div>
                 </div>
             {% endfor %}
@@ -130,7 +132,7 @@
     </div>
 
     <!--    footer-->
-    <footer class="fixed-bottom bg-light pt-2 pl-2 pr-2" style="height: 40px">
+    <footer class="fixed-bottom bg-light pt-3 pl-2 pr-3" style="height: 40px">
         <div class="float-right d-none d-sm-block">
             <b>Version</b> 1.0@Beta
         </div>
