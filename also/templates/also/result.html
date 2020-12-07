@@ -46,7 +46,7 @@
             <div class="input-group">
                 {% csrf_token %}
                 <input type="text" id="kw" class="form-control"
-                       value="{% if q is not None %}{{ q }} {% else %}此处输入你要搜索的内容...{% endif %}"
+                       value="{% if q is not None %}{{ q }} {% endif %}"
                        placeholder="此处输入你要搜索的内容..."
                        onkeydown="enter_search(event)" style="width: 500px;"/>
                 <div class="input-group-append">
@@ -68,19 +68,28 @@
     <div class="row pt-2 pl-5" id="wrapper_wrapper">
         <div class="col-lg-6" id="content_left">
             <div class="alert alert-light" role="alert">
-                A simple primary alert—check it out!
+                <ul class="nav nav-tabs" id="pills-tab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {% if tn == 'also' %} active{% endif %}" id="tab-also" data-toggle="pill"
+                           href="{% url 'result' %}?tn=also&q={{ q }}" role="tab"
+                           aria-controls="pills-home" aria-selected="true">网页</a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {% if tn == 'file' %} active{% endif %} " id="tab-file" data-toggle="pill"
+                           href="{% url 'result' %}?tn=file&q={{ q }}" role="tab"
+                           aria-controls="pills-profile" aria-selected="false">文件</a>
+                    </li>
+                </ul>
             </div>
-            {% for i in content_result_right %}
+            {% for content in content_result_right %}
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">List group item heading</h5>
-                            <small>3 days ago</small>
+                            <h5 class="mb-1"><a href="{{ content.url }}" target="_blank">{{ content.title }}</a></h5>
+                            <h6 class="text-muted">{{ content.create_time }}</h6>
                         </div>
-                        <p class="text-break" id="content-resume">来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更
-                            好的讲解这个较为重要的命令行git log,我提前使用git merge featurt.来学习一下git log的操作,这个操作是查看
-                            来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了更git操作的日志,所以,让我们学习一下,为了更</p>
-                        <small>www.baidu.com</small>
+                        <p class="text-break" id="content-resume">{{ content.resume }}</p>
+                        <small>{{ content.url }}</small>
                     </div>
                 </div>
             {% endfor %}
@@ -95,7 +104,7 @@
                                 <li class="page-item">
                                     {% if content_result_right.has_previous %}
                                         <a class='active page-link'
-                                           href="?p={{ content_result_right.previous_page_number }}">上一页</a>
+                                           href="?tn={{ tn }}&q={{ q }}&p={{ content_result_right.previous_page_number }}">上一页</a>
                                     {% endif %}
                                 </li>
                                 {% for index in content_result_right.paginator.page_range %}
@@ -104,20 +113,21 @@
                                         <li class="page-item active"><a class="page-link">{{ index }}</a></li>
                                         <!-- 其他页码需要链接，不需要背景颜色 -->
                                     {% elif index <= 8 %}
-                                        <li class="page-item"><a class="page-link" href="?p={{ index }}">{{ index }}</a>
+                                        <li class="page-item"><a class="page-link"
+                                                                 href="?tn={{ tn }}&q={{ q }}&p={{ index }}">{{ index }}</a>
                                         </li>
                                     {% endif %}
                                 {% endfor %}
                                 {% if content_result_right.number > 7 and content_result_right.has_next %}
                                     <li class="page-item">
                                         <a class="page-link"
-                                           href="?p={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
+                                           href="?tn={{ tn }}&q={{ q }}&p={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
                                     </li>
                                 {% endif %}
                                 <li>
                                     {% if content_result_right.has_next %}
                                         <a class='active page-link'
-                                           href="?p={{ content_result_right.next_page_number }}">下一页</a>
+                                           href="?tn={{ tn }}&q={{ q }}&p={{ content_result_right.next_page_number }}">下一页</a>
                                     {% endif %}
                                 </li>
                             </ul>
@@ -127,7 +137,7 @@
             </div>
         </div>
         {#        右边#}
-        <div class="col-lg-2" id="content-right"><h1>Beta版</h1></div>
+        <div class="col-lg-2" id="content-right"><h5>Beta版</h5></div>
 
     </div>
 
@@ -156,7 +166,14 @@
         const now = new Date();
         const year = now.getFullYear();
         $("#years_now").html(year);
-    })
+    });
+    // tab按钮设置点击事件
+    document.getElementById('tab-also').onclick = function () {
+        window.location.href = $("#tab-also").attr("href");
+    };
+    document.getElementById('tab-file').onclick = function () {
+        window.location.href = $("#tab-file").attr("href");
+    }
 </script>
 </body>
 </html>

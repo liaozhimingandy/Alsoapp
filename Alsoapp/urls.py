@@ -16,8 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from also.views import page_not_found, page_permission_denied, page_inter_error
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', include('also.urls')),
 ]
+
+# 配置异常页面
+handler403 = page_permission_denied
+handler404 = page_not_found
+handler500 = page_inter_error

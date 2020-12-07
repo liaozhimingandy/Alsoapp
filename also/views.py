@@ -1,7 +1,9 @@
+import time
+
 from django.shortcuts import render
 from django.views.generic import View  # 导入类试图
 from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnInteger  # 数据页面分页使用
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 
@@ -13,11 +15,21 @@ class DefaultView(View):
 
 class ResultView(View):
 
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         # print(request.GET.get("q"))
         context = dict()
         context["q"] = request.GET.get("q")
-        content_result_right = [i for i in range(100)]
+        context["tn"] = request.GET.get("tn")
+        if context["q"] is None and context["tn"] is None:
+            return HttpResponseRedirect("/")
+        tmp_content = {"title": "演示数据", "resume": "来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了"
+                                                  "更好的讲解这个较为重要的命令行git log,我提前使用git merge featurt.来学习一下git"
+                                                  " log的操作,这个操作是查看来学习一下git log的操作,这个操作是查看git操作的日志,所以,"
+                                                  "让我们学习一下,为了更git操作的日志,所以,让我们学习一下,为了更", "url": "http://127.0.0.1:8000/"
+            , "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                       }
+        content_result_right = [tmp_content for i in range(100)]
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
@@ -40,6 +52,7 @@ class ResultView(View):
 
 class SuggestView(View):
     """搜索建议部分"""
+
     def get(self, request):
         q = request.GET.get("query")
         limit = request.GET.get("limit")
@@ -47,3 +60,15 @@ class SuggestView(View):
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
         sug = [{"label": "中国"}, {"label": "中华人民共和国"}, {"label": "China"}]
         return JsonResponse(sug, safe=False)
+
+
+def page_not_found(request, exception):
+    return render(request, 'also/404.html')
+
+
+def page_permission_denied(request, exception):
+    return render(request, 'also/404.html')
+
+
+def page_inter_error(request):
+    return render(request, 'also/404.html')

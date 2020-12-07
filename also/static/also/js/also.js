@@ -56,7 +56,7 @@ function to_search(event) {
         // 重新定位到本页面
         window.open("/", "_self");
     }
-    window.open("s?q=" + $('input[id="kw"]').val(), '_blank');
+    window.open("s?tn=also&q=" + $('input[id="kw"]').val(), '_blank');
 }
 
 // 按键触发事件处理

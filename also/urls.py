@@ -22,3 +22,4 @@ urlpatterns = [
     path('s', ResultView.as_view(), name="result"),
     path("sug", SuggestView.as_view(), name="suggest"),
 ]
+
