@@ -18,6 +18,9 @@ from django.urls import path, include
 
 from also.views import page_not_found, page_permission_denied, page_inter_error
 
+# 应用命名空间
+app_name = "main"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path(r'', include('also.urls')),

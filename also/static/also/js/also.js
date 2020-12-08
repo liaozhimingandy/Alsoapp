@@ -51,12 +51,18 @@ $(function () {
 
 //搜索按钮触发事件处理
 function to_search(event) {
+
     var q = $('input[id="kw"]').val();
     if (q === '' || q.length === 0) {
         // 重新定位到本页面
         window.open("/", "_self");
     }
-    window.open("s?tn=also&q=" + $('input[id="kw"]').val(), '_blank');
+    var tsn = $(".also-tag").attr("name");
+    if (tsn === '' || tsn === undefined) {
+        tsn = "also";
+    }
+    window.open("s?tn=" + tsn + "&q=" + $('input[id="kw"]').val(), '_blank');
+
 }
 
 // 按键触发事件处理

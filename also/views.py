@@ -30,6 +30,8 @@ class ResultView(View):
             , "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
                        }
         content_result_right = [tmp_content for i in range(100)]
+
+        # 数据分页
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1

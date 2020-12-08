@@ -17,9 +17,11 @@ from django.urls import path
 
 from .views import DefaultView, ResultView, SuggestView
 
+# 应用命名空间
+app_name = "alsoapp"
+
 urlpatterns = [
     path('', DefaultView.as_view(), name="default"),
     path('s', ResultView.as_view(), name="result"),
     path("sug", SuggestView.as_view(), name="suggest"),
 ]
-
