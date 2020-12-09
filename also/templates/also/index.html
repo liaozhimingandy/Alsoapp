@@ -12,22 +12,26 @@
     <link rel="stylesheet" href="{% static 'also/css/autocompleter.css' %}">
 
 </head>
-<body>
-<form class="container-fluid" onsubmit="return false;">
-    <div class="row justify-content-center">
-        <div class="col-lg-6" style="top: 30%; position: absolute;">
-            <div class="input-group">
+<body style="background:  #E9EBEE">
+<div class="container-fluid">
+    {#    搜索框位置#}
+    <form onsubmit="return false;" style="margin-top: 13%;">
+        <div class="form-row justify-content-center">
+            <div class="col-md-8 col-lg-5">
                 {% csrf_token %}
-                <input type="text" id="kw" class="form-control" placeholder="此处输入你要搜索的内容..."
-                       onkeydown="enter_search(event)"/>
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="button" onclick="to_search(event);">&nbsp;搜索一下&nbsp;</button>
+                <div class="input-group mb-2 mr-sm-2">
+                    <input type="text" id="kw" class="form-control" placeholder="此处输入你要搜索的内容..."
+                           value="{% if q is not None %}{{ q }} {% endif %}"
+                           onkeydown="enter_search(event)"/>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="to_search(event);">&nbsp;搜索一下&nbsp;
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</form>
-
+    </form>
+</div>
 <!--    footer-->
 <footer class="fixed-bottom bg-light pt-2 pl-2 pr-2" style="height: 40px">
     <div class="float-right d-none d-sm-block">
