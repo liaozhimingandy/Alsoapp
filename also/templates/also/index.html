@@ -21,7 +21,7 @@
                 {% csrf_token %}
                 <div class="input-group mb-2 mr-sm-2">
                     <input type="text" id="kw" class="form-control" placeholder="此处输入你要搜索的内容..."
-                           value="{% if q is not None %}{{ q }} {% endif %}"
+                           value="{% if wd is not None %}{{ wd }} {% endif %}"
                            onkeydown="enter_search(event)"/>
                     <div class="input-group-append">
                         <button class="btn btn-primary" type="button" onclick="to_search(event);">&nbsp;搜索一下&nbsp;

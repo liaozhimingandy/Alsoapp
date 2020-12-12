@@ -52,8 +52,8 @@ $(function () {
 //搜索按钮触发事件处理
 function to_search(event) {
 
-    var q = $('input[id="kw"]').val().trim();
-    if (q === '' || q.length === 0) {
+    const wd = $('input[id="kw"]').val().trim();
+    if (wd === '' || wd.length === 0) {
         // 重新定位到本页面
         window.open("/", "_self");
         return;
@@ -62,7 +62,7 @@ function to_search(event) {
     if (tsn === '' || tsn === undefined) {
         tsn = "also";
     }
-    window.open("s?tn=" + tsn + "&q=" + q, "_self");
+    window.open("s?tn=" + tsn + "&wd=" + wd, "_self");
 
 }
 

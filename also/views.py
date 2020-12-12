@@ -6,6 +6,10 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage, PageNotAnIn
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
+from elasticsearch import Elasticsearch
+
+es = Elasticsearch(['127.0.0.1:9200'])
+
 
 # Create your views here.
 class DefaultView(View):
@@ -19,9 +23,9 @@ class ResultView(View):
     def get(cls, request):
         # print(request.GET.get("q"))
         context = dict()
-        context["q"] = request.GET.get("q")
+        context["wd"] = request.GET.get("wd")
         context["tn"] = request.GET.get("tn")
-        if context["q"] is None and context["tn"] is None:
+        if context["wd"] is None and context["tn"] is None:
             return HttpResponseRedirect("/")
         tmp_content = {"title": "演示数据", "resume": "来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了"
                                                   "更好的讲解这个较为重要的命令行git log,我提前使用git merge featurt.来学习一下git"
@@ -30,12 +34,12 @@ class ResultView(View):
             , "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
                        }
         content_result_right = [tmp_content for i in range(100)]
-
+        Search.es_search(q=context["wd"])
         # 数据分页
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
-            page = request.GET.get('p')
+            page = request.GET.get('pn')
             content_result_right_page = paginator.page(page)
             # todo: 注意捕获异常
         except PageNotAnInteger:
@@ -74,3 +78,35 @@ def page_permission_denied(request, exception):
 
 def page_inter_error(request):
     return render(request, 'also/404.html')
+
+
+class Search:
+
+    @staticmethod
+    def es_search(q):
+        _query = {
+            'query': {
+                'match': {  # 完全匹配搜索关键词，模糊匹配用match
+                    'address': q  # 搜索的字段和关键词
+                }
+            },
+            "_source": ["user", "message", "address"],
+            "highlight": {  # 结果高亮
+                "encoder": "html",
+                "pre_tags": [
+                    "<em>"
+                ],
+                "post_tags": [
+                    "</em>"
+                ],
+                "fields": {
+                    "address": {}
+                }
+            }
+        }
+        search_result = es.search(index="hello", body=_query)
+        if search_result['hits']['total']['value'] == 0:
+            return
+        else:
+            result = search_result['hits']['hits']
+            print(result)
