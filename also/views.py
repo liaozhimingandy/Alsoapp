@@ -7,6 +7,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from elasticsearch import Elasticsearch
+from elasticsearch.exceptions import ConnectionError
 
 es = Elasticsearch(['127.0.0.1:9200'])
 
@@ -27,14 +28,20 @@ class ResultView(View):
         context["tn"] = request.GET.get("tn")
         if context["wd"] is None and context["tn"] is None:
             return HttpResponseRedirect("/")
-        tmp_content = {"title": "演示数据", "resume": "来学习一下git log的操作,这个操作是查看git操作的日志,所以,让我们学习一下,为了"
-                                                  "更好的讲解这个较为重要的命令行git log,我提前使用git merge featurt.来学习一下git"
-                                                  " log的操作,这个操作是查看来学习一下git log的操作,这个操作是查看git操作的日志,所以,"
-                                                  "让我们学习一下,为了更git操作的日志,所以,让我们学习一下,为了更", "url": "http://127.0.0.1:8000/"
-            , "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
-                       }
-        content_result_right = [tmp_content for i in range(100)]
-        Search.es_search(q=context["wd"])
+
+        # elasticsearch查询数据
+        es_search_result = Search.es_search(q=context["wd"]).get("hits")
+
+        content_result_right = list()
+        if es_search_result.get('total').get("value", 0) != 0:
+            for tmp_data in es_search_result.get("hits"):
+                # print(tmp_data)
+                tmp_content = {"title": tmp_data.get('highlight').get("user"),
+                               "resume": tmp_data.get('highlight').get("address"),
+                               "url": "http://127.0.0.1:8000/",
+                               "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
+                content_result_right.append(tmp_content)
+
         # 数据分页
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
@@ -51,15 +58,17 @@ class ResultView(View):
         except EmptyPage:
             # 如果请求的页数不在合法的页数范围内，返回结果的最后一页。
             content_result_right_page = paginator.page(paginator.num_pages)
-        # print(content_result_right_page)
+
         context['content_result_right'] = content_result_right_page
+        # print(context)
         return render(request, "also/result.html", context=context)
 
 
 class SuggestView(View):
     """搜索建议部分"""
 
-    def get(self, request):
+    @classmethod
+    def get(cls, request):
         q = request.GET.get("query")
         limit = request.GET.get("limit")
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
@@ -85,28 +94,41 @@ class Search:
     @staticmethod
     def es_search(q):
         _query = {
-            'query': {
-                'match': {  # 完全匹配搜索关键词，模糊匹配用match
-                    'address': q  # 搜索的字段和关键词
+            "query": {
+                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                    "query": q  # 搜索的字段和关键词
+                    , "fields": ["user", "address"]
                 }
             },
             "_source": ["user", "message", "address"],
             "highlight": {  # 结果高亮
                 "encoder": "html",
-                "pre_tags": [
-                    "<em>"
-                ],
-                "post_tags": [
-                    "</em>"
-                ],
                 "fields": {
-                    "address": {}
+                    "address": {"pre_tags": [
+                        "<mark><em class=\"text-danger\">"
+                    ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]},
+                    "user": {
+                        "pre_tags": [
+                            "<mark><em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]
+
+                    }
+
                 }
             }
         }
-        search_result = es.search(index="hello", body=_query)
-        if search_result['hits']['total']['value'] == 0:
+        try:
+            search_result = es.search(index="", body=_query, size=1000, request_timeout=1, ignore=[400, 400],
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits.highlight',
+                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+        except ConnectionError as e:
+            print(e)
             return
         else:
-            result = search_result['hits']['hits']
-            print(result)
+            return search_result

@@ -5,7 +5,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Hello, world!</title>
+    <title>{% if wd is not None %}{{ wd }} {% endif %}_搜索一下</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"
           integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
@@ -18,6 +18,11 @@
             /* font-size: .875rem;
              font-size: 14px; */
 
+        }
+
+        {#em去除斜体#}
+        em {
+            font-style: normal;
         }
 
         {#描述内容修正为2行,多余内容进行隐藏#}
@@ -82,10 +87,13 @@
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1"><a href="{{ content.url }}" target="_blank">{{ content.title }}</a></h5>
+                            <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a
+                                    href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>
+                            </h5>
                             <h6 class="text-muted">{{ content.create_time }}</h6>
                         </div>
-                        <p class="text-break" id="content-resume">{{ content.resume }}</p>
+                        {#                        {{ 变量名|safe }} html防止转义#}
+                        <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>
                         <small>{{ content.url }}</small>
                     </div>
                 </div>
