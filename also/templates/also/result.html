@@ -32,7 +32,6 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             word-break: break-all;
-
         }
     </style>
 </head>
@@ -83,22 +82,33 @@
                     </li>
                 </ul>
             </div>
-            {% for content in content_result_right %}
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a
-                                    href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>
-                            </h5>
-                            <h6 class="text-muted">{{ content.create_time }}</h6>
+            {#            如果关键词过长,则显示对应提示#}
+            {% if msg is not None %}
+                <h6><b>{{ msg }}</b></h6>
+            {% endif %}
+            {#            如果搜索总条数为0#}
+            {% if result_total == 0 %}
+                <h6>sorry,我们收录的记录还比较少,请换个条件试试吧</h6>
+                {#                搜索结果记录数不为0时---开始---#}
+            {% else %}
+                {% for content in content_result_right %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a
+                                        href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>
+                                </h5>
+                                <h6 class="text-muted">{{ content.create_time }}</h6>
+                            </div>
+                            {#                        {{ 变量名|safe }} html防止转义#}
+                            <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>
+                            <small id="alsoapp-footer"><a href="{{ content.url }}" class="text-muted"
+                                                          target="_blank">{{ content.url|safe|truncatechars_html:20 }}...<b>html</b></a><B>&bull;</B><span>测试版</span></small>
                         </div>
-                        {#                        {{ 变量名|safe }} html防止转义#}
-                        <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>
-                        <small>{{ content.url }}</small>
                     </div>
-                </div>
-            {% endfor %}
-
+                {% endfor %}
+                {#                搜索结果记录数不为0时---结束---#}
+            {% endif %}
             {# 实现分页标签的代码 #}
             {# 这里使用 bootstrap 渲染页面 #}
             <div class="card" style="margin-bottom: 60px;">
@@ -113,10 +123,10 @@
                                     {% endif %}
                                 </li>
                                 {% for index in content_result_right.paginator.page_range %}
-                                    <!-- 如果页码列表里的一个数字正好和当前展示的这个page对象的页码一样，那么就让这个数字归为active类，也就是给它添加背景颜色。这样我们就能一眼看出我们现在处于哪一页。并且因为我们就处于这一页，所以这个数字不需要链接。 -->
+                                    {#                                    如果页码列表里的一个数字正好和当前展示的这个page对象的页码一样，那么就让这个数字归为active类，也就是给它添加背景颜色。这样我们就能一眼看出我们现在处于哪一页。并且因为我们就处于这一页，所以这个数字不需要链接。#}
                                     {% if index == content_result_right.number %}
                                         <li class="page-item active"><a class="page-link">{{ index }}</a></li>
-                                        <!-- 其他页码需要链接，不需要背景颜色 -->
+                                        {#                                        其他页码需要链接，不需要背景颜色#}
                                     {% elif index <= 8 %}
                                         <li class="page-item"><a class="page-link"
                                                                  href="?tn={{ tn }}&wd={{ wd }}&pn={{ index }}">{{ index }}</a>
@@ -140,17 +150,19 @@
                     </div>
                 </div>
             </div>
+
         </div>
         {#        右边#}
-        <div class="col-lg-2" id="content-right"><h5>Beta版</h5></div>
+        <div class="col-lg-2" id="content-right"><h5>测试版</h5></div>
     </div>
 
     <!--    footer-->
     <footer class="fixed-bottom bg-light pt-2 pl-2 pr-3" style="height: 40px">
         <div class="float-right d-none d-sm-block">
-            <b>Version</b> 1.0@Beta
+            <b>Version</b> 1.0<B>&bull;</B>测试版
         </div>
-        <strong>Copyright &copy; <span id="years_now" class="font-weight-bold"></span> <a href="#">zhiming</a>.</strong>All
+        <strong>Copyright &copy; <span id="years_now" class="font-weight-bold"></span> <a
+                href="#">zhiming</a><B>&bull;</B></strong>All
         rights reserved.
     </footer>
 </div>
@@ -164,13 +176,13 @@
 <script type="text/javascript" src="{% static 'also/js/jquery.autocompleter.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/also.js' %}"></script>
 <script type="text/javascript">
-    /*赋值授权时间*/
+    {#赋值授权时间#}
     $(function () {
         const now = new Date();
         const year = now.getFullYear();
         $("#years_now").html(year);
     });
-    // tab按钮设置点击事件
+    {#tab按钮设置点击事件#}
     document.getElementById('tab-also').onclick = function () {
         const tsn = $(".also-tag").attr("name");
         if (tsn === "also") {

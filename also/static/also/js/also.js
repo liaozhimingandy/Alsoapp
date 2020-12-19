@@ -62,7 +62,8 @@ function to_search(event) {
     if (tsn === '' || tsn === undefined) {
         tsn = "also";
     }
-    window.open("s?tn=" + tsn + "&wd=" + wd, "_self");
+    // 对url参数进行编码处理
+    window.open("s?tn=" + tsn + "&wd=" + escape(wd), "_self");
 
 }
 
