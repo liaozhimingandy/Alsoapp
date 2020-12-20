@@ -1,0 +1,31 @@
+{% extends 'result_base.html' %}
+
+{#字典匹配结果部分#}
+{% block result_content %}
+    <div class="card border-secondary mb-1">
+        <div class="card-body p-0 pb-0">
+            <table class="table table-hover table-striped table-bordered">
+                <thead class="table-primary">
+                <tr>
+                    <th scope="col">序号</th>
+                    <th scope="col">code</th>
+                    <th scope="col">名称</th>
+                    <th scope="col">备注</th>
+                    <th scope="col">来源表</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for content in content_result_right %}
+                    <tr>
+                        <th scope="row"> {{ forloop.counter }}</th>
+                        <td>{{ content.code|safe }}</td>
+                        <td>{{ content.name|safe }}</td>
+                        <td>{{ content.note|safe }}</td>
+                        <td>{{ content.desc|safe }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

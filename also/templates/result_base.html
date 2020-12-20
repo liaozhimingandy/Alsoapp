@@ -43,7 +43,7 @@
         <!-- Left navbar links -->
         <ul class="navbar-nav">
             <li class="nav-item d-none d-sm-inline-block">
-                <a href="{% url 'alsoapp:default' %}" class="nav-link">Home</a>
+                <a href="{% url 'alsoapp:default' %}" class="nav-link">首页</a>
             </li>
         </ul>
         <!-- SEARCH FORM -->
@@ -97,62 +97,18 @@
                 <h6>sorry,我们收录的记录还比较少,请换个条件试试吧</h6>
                 {#                搜索结果记录数不为0时---开始---#}
             {% else %}
-                <h6 class="text-muted"><small><b>我们一共为您找到相关结果约{{ result_total_format }}个,共耗时{{ result_total_time }}秒</b></small>
+                <h6 class="text-muted">
+                    <small><b>我们为您找到相关结果约{{ result_total_format }}个,共耗时{{ result_total_time }}秒</b></small>
                 </h6>
-                {#                数据库字典展示数据#}
-                {% if tn == "dict" %}
-                    <div class="card">
-                        <div class="card-body">
-                            <table class="table table-hover table-striped table-bordered">
-                                <thead class="table-primary">
-                                <tr>
-                                    <th scope="col">序号</th>
-                                    <th scope="col">code</th>
-                                    <th scope="col">名称</th>
-                                    <th scope="col">备注</th>
-                                    <th scope="col">来源表</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for content in content_result_right %}
-                                    <tr>
-                                        <th scope="row"> {{ forloop.counter }}</th>
-                                        <td>{{ content.code|safe }}</td>
-                                        <td>{{ content.name|safe }}</td>
-                                        <td>{{ content.note|safe }}</td>
-                                        <td>{{ content.desc|safe }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {#                    网页链接#}
-                {% else %}
-                    {% for content in content_result_right %}
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a
-                                            href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>
-                                    </h5>
-                                    <h6 class="text-muted">{{ content.create_time }}</h6>
-                                </div>
-                                {#                        {{ 变量名|safe }} html防止转义#}
-                                <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>
-                                <small id="alsoapp-footer"><a href="{{ content.url }}" class="text-muted"
-                                                              target="_blank">{{ content.url|safe|truncatechars_html:20 }}...<b>html</b></a><B>&bull;</B><span>测试版</span></small>
-                            </div>
-                        </div>
-                    {% endfor %}
-                {% endif %}
 
-                {#                搜索结果记录数不为0时---结束---#}
+                {#            此处为需要显示的内容#}
+                {% block result_content %}{% endblock %}
+
             {% endif %}
             {# 实现分页标签的代码 #}
             {# 这里使用 bootstrap 渲染页面 #}
-            <div class="card" style="margin-bottom: 60px;">
-                <div class="card-body">
+            <div class="card" style="margin-bottom: 60px; border-color: #E9EBEE">
+                <div class="card-footer pb-0" style="background-color: #E9EBEE">
                     <div id="pages" class="text-center">
                         <nav>
                             <ul class="pagination justify-content-center">
@@ -246,7 +202,7 @@
     }
     {#设置内容的左边间距和搜索框对齐#}
     {#$(".card").css("margin-left", ($("#kw").offset().left-$(".card").offset().left)+'px');#}
-    $("#content_left").css("margin-left", ($("#kw").offset().left - $(".card").offset().left) + 'px');
+    $("#content_left").css("margin-left", ($("#kw").offset().left - $(".alert").offset().left) + 'px');
     {#alert(($("#kw").offset().left-$("#content_wrapper").offset().left)+'px');#}
     {# console.info($("#kw").offset().left);#}
     {# console.info($("#content_left").offset().left);#}

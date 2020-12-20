@@ -1,0 +1,52 @@
+PUT also_files
+    {
+     "aliases":{
+        "file":{
+            }
+        },
+     "settings":{
+        "number_of_shards":5,
+        "number_of_replicas":0
+    },
+      "mappings": {
+        "properties": {
+          "file_name": {
+            "type": "text",
+            "analyzer": "ik_max_word",
+            "fields" : {
+              "keyword" : {
+                "type" : "keyword",
+                "ignore_above" : 256
+              }
+          }
+          },
+          "desc": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          },
+          "content": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          },
+          "path": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          },
+          "offical": {
+            "type": "text",
+            "analyzer": "ik_smart"
+          },
+          "tags": {
+            "type": "text",
+            "analyzer": "ik_smart"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "@timestamp":{
+              "type":"date",
+              "format":"strict_date_optional_time||epoch_millis"
+          }
+        }
+      }
+    }

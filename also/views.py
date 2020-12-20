@@ -39,18 +39,46 @@ class ResultView(View):
         # search_wd = "".join([(len(i) > 0 and chr(int(i, 16)) or "") for i in search_wd.split('%u')])
         context["wd"] = search_wd
 
+        start_time = time.time()
         # elasticsearch查询数据
-        es_search_result = Search.es_search(q=search_wd).get("hits")
+        if context["tn"] == "dict":
+            es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
+            content_result_right = list()
+            if es_search_result.get('total').get("value", 0) != 0:
+                for tmp_data in es_search_result.get("hits"):
+                    tmp_content = {"table_name": tmp_data.get('_index'),
+                                   "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get('highlight').get(
+                                       "code", "") != "" else tmp_data.get("_source").get("code"),
+                                   "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get('highlight').get(
+                                       "name", "") != "" else tmp_data.get("_source").get("name"),
+                                   "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get('highlight').get(
+                                       "desc", "") != "" else tmp_data.get("_source").get("desc"),
+                                   "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get('highlight').get(
+                                       "note", "") != "" else tmp_data.get("_source").get("note"),
+                                   "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
+                    # print(tmp_data.get('highlight').get("desc"))
+                    content_result_right.append(tmp_content)
+            # print(content_result_right)
+        else:
+            es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
+            content_result_right = list()
+            if es_search_result.get('total').get("value", 0) != 0:
+                for tmp_data in es_search_result.get("hits"):
+                    tmp_content = {
+                        "title": tmp_data.get('_source').get("title") if tmp_data.get('highlight').get("title",
+                                                                                                       "") == "" else
+                        tmp_data.get('highlight').get("title")[0],
+                        "resume": tmp_data.get('_source').get("desc") if tmp_data.get('highlight').get("desc",
+                                                                                                       "") == "" else
+                        tmp_data.get('highlight').get("desc")[0],
+                        "url": tmp_data.get('_source').get("url"),
+                        "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                    }
+                    content_result_right.append(tmp_content)
 
-        content_result_right = list()
-        if es_search_result.get('total').get("value", 0) != 0:
-            for tmp_data in es_search_result.get("hits"):
-                tmp_content = {"title": tmp_data.get('_source').get("title"),
-                               "resume": tmp_data.get('highlight').get("desc")[0],
-                               "url": tmp_data.get('_source').get("url"),
-                               "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
-                content_result_right.append(tmp_content)
-
+        end_time = time.time()
+        # 查询耗时
+        context["result_total_time"] = '{:.3f}'.format(end_time - start_time)
         # 数据分页
         paginator = Paginator(content_result_right, 10)  # 页面分页
         try:
@@ -71,7 +99,12 @@ class ResultView(View):
         context["result_total_format"] = '{:,}'.format(paginator.count)
         context['content_result_right'] = content_result_right_page
         # print(paginator.count)
-        return render(request, "also/result.html", context=context)
+        if context["tn"] == "dict":
+            return render(request, "also/result_dict.html", context=context)
+        elif context["tn"] == "also":
+            return render(request, "also/result_web.html", context=context)
+        elif context["tn"] == "file":
+            return render(request, "also/result_web.html", context=context)
 
 
 class SuggestView(View):
@@ -102,11 +135,11 @@ def page_inter_error(request):
 class Search:
 
     @staticmethod
-    def es_search(q):
+    def es_search_web(search_wd):
         _query = {
             "query": {
                 "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
-                    "query": q  # 搜索的字段和关键词
+                    "query": search_wd  # 搜索的字段和关键词
                     , "fields": ["title", "desc", "content", "tag"]
                 }
             },
@@ -134,7 +167,65 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="hello", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+            search_result = es.search(index="web", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                                   'hits.hits.highlight',
+                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+        except ConnectionError as e:
+            # print(e)
+            return
+        else:
+            # print(search_result)
+            return search_result
+
+    @staticmethod
+    def es_search_dict(search_wd):
+        _query = {
+            "query": {
+                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                    "query": search_wd  # 搜索的字段和关键词
+                    , "fields": ["code", "desc", "note", "name"]
+                }
+            },
+            "_source": ["code", "desc", "note", "name", "offical"],
+            "highlight": {  # 结果高亮
+                "encoder": "html",
+                "fields": {
+                    "code": {"pre_tags": [
+                        "<mark><em class=\"text-danger\">"
+                    ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]},
+                    "desc": {
+                        "pre_tags": [
+                            "<mark><em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]
+                    },
+                    "name": {
+                        "pre_tags": [
+                            "<mark><em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]
+                    },
+                    "note": {
+                        "pre_tags": [
+                            "<mark><em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em></mark>"
+                        ]
+                    }
+                }
+            }
+        }
+        try:
+            search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'])  # index不指定,代表所有索引下进行查找
