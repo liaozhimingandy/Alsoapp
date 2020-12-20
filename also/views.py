@@ -33,8 +33,12 @@ class ResultView(View):
         if len(context["wd"].encode("utf8")) >= 80:
             search_wd = context["wd"].encode("utf8")[0:80].decode("utf8")
             context["msg"] = f"\"{search_wd[-3:]}\"及其后面的字词均被忽略，因为我们的查询限制在40个汉字以内"
+        else:
+            search_wd = context["wd"]
+        # 解析因escape编码的数据
+        # search_wd = "".join([(len(i) > 0 and chr(int(i, 16)) or "") for i in search_wd.split('%u')])
+        context["wd"] = search_wd
 
-        # print(context["wd"])
         # elasticsearch查询数据
         es_search_result = Search.es_search(q=search_wd).get("hits")
 
@@ -64,6 +68,7 @@ class ResultView(View):
             # 如果请求的页数不在合法的页数范围内，返回结果的最后一页。
             content_result_right_page = paginator.page(paginator.num_pages)
         context["result_total"] = paginator.count
+        context["result_total_format"] = '{:,}'.format(paginator.count)
         context['content_result_right'] = content_result_right_page
         # print(paginator.count)
         return render(request, "also/result.html", context=context)

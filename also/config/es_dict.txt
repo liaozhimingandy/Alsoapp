@@ -1,7 +1,7 @@
-PUT twitter2
+PUT dict_sex
     {
      "aliases":{
-        "hello":{
+        "dict":{
             }
         },
      "settings":{
@@ -10,7 +10,7 @@ PUT twitter2
     },
       "mappings": {
         "properties": {
-          "title": {
+          "code": {
             "type": "text",
             "analyzer": "ik_max_word",
             "fields" : {
@@ -20,23 +20,17 @@ PUT twitter2
               }
           }
           },
+          "note": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          },
           "desc": {
             "type": "text",
             "analyzer": "ik_max_word"
           },
-          "content": {
+          "name": {
             "type": "text",
             "analyzer": "ik_max_word"
-          },
-          "url": {
-            "type": "text",
-            "analyzer": "standard",
-            "fields" : {
-              "keyword" : {
-                "type" : "keyword",
-                "ignore_above" : 2056
-              }
-            }
           },
           "offical": {
             "type": "text",

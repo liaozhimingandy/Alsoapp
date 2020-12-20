@@ -62,8 +62,10 @@ function to_search(event) {
     if (tsn === '' || tsn === undefined) {
         tsn = "also";
     }
+    // alert(tsn);
     // 对url参数进行编码处理
-    window.open("s?tn=" + tsn + "&wd=" + escape(wd), "_self");
+    // window.open("s?tn=" + tsn + "&wd=" + escape(wd), "_self");
+    window.open("s?tn=" + tsn + "&wd=" + encodeURIComponent(wd), "_self");
 
 }
 

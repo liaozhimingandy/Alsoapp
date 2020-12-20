@@ -80,6 +80,12 @@
                            href="{% url 'alsoapp:result' %}?tn=file&wd={{ wd }}" role="tab"
                            aria-controls="pills-profile" aria-selected="false" name="file">文件</a>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {% if tn == 'dict' %} active also-tag{% endif %} " id="tab-dict"
+                           data-toggle="pill"
+                           href="{% url 'alsoapp:result' %}?tn=dict&wd={{ wd }}" role="tab"
+                           aria-controls="pills-profile" aria-selected="false" name="dict">字典</a>
+                    </li>
                 </ul>
             </div>
             {#            如果关键词过长,则显示对应提示#}
@@ -91,6 +97,7 @@
                 <h6>sorry,我们收录的记录还比较少,请换个条件试试吧</h6>
                 {#                搜索结果记录数不为0时---开始---#}
             {% else %}
+                <h6 class="text-muted"><small><b>我们一共为您找到相关结果约{{ result_total_format }}个</b></small></h6>
                 {% for content in content_result_right %}
                     <div class="card">
                         <div class="card-body">
@@ -196,6 +203,13 @@
             return;
         }
         window.location.href = $("#tab-file").attr("href");
+    }
+    document.getElementById('tab-dict').onclick = function () {
+        const tsn = $(".also-tag").attr("name");
+        if (tsn === "dict") {
+            return;
+        }
+        window.location.href = $("#tab-dict").attr("href");
     }
     {#设置内容的左边间距和搜索框对齐#}
     {#$(".card").css("margin-left", ($("#kw").offset().left-$(".card").offset().left)+'px');#}
