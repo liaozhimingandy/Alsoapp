@@ -3,6 +3,22 @@
 {#网页链接匹配结果部分#}
 {% block result_content %}
     {% for content in content_result_right %}
+        {#查询结果展示item模板 result-list-1#}
+        <div class="also">
+            <!--m-->
+            <div class="result-content" data-srcid="abv" id="rank_{{ forloop.counter }}" data-tpl="result-list-1">
+                <h3 class="result-title">测试用例</h3>
+                <div class="result-body">
+                    <span style="color:#666">6天前-&nbsp;</span>
+                    <span>小米应用商店提供百度贴吧免费下载,聊兴趣，上贴吧！功能升级、视觉升级，让你感到灿然一新！兴趣频道：分类展现，精彩内容沉浸体验更过瘾 ...</span>
+                </div>
+                <div class="result-footer">
+                    <cite class="text-muted"><a target="_blank" href="https://www.baidu.com/">百度</a></cite> &nbsp;-&nbsp;<B>&bull;</B><a></a>
+                </div>
+                <!--RANK:{{ forloop.counter }}-->
+            </div>
+            <!--n-->
+        </div>
         <div class="card border-info mb-1">
             <div class="card-body">
                 <div class="d-flex w-100 justify-content-between">

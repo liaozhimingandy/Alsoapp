@@ -98,12 +98,13 @@
                 {#                搜索结果记录数不为0时---开始---#}
             {% else %}
                 <h6 class="text-muted">
-                    <small><b>我们为您找到相关结果约{{ result_total_format }}个,共耗时{{ result_total_time }}秒</b></small>
+                    <small><b>我们为您找到相关结果约{{ result_total_format }}个(用时{{ result_total_time }}秒)</b></small>
                 </h6>
 
                 {#            此处为需要显示的内容#}
+                <!--a-->
                 {% block result_content %}{% endblock %}
-
+                <!--z-->
             {% endif %}
             {# 实现分页标签的代码 #}
             {# 这里使用 bootstrap 渲染页面 #}

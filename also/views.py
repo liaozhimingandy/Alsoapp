@@ -42,39 +42,51 @@ class ResultView(View):
         start_time = time.time()
         # elasticsearch查询数据
         if context["tn"] == "dict":
-            es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
-            content_result_right = list()
-            if es_search_result.get('total').get("value", 0) != 0:
-                for tmp_data in es_search_result.get("hits"):
-                    tmp_content = {"table_name": tmp_data.get('_index'),
-                                   "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get('highlight').get(
-                                       "code", "") != "" else tmp_data.get("_source").get("code"),
-                                   "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get('highlight').get(
-                                       "name", "") != "" else tmp_data.get("_source").get("name"),
-                                   "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get('highlight').get(
-                                       "desc", "") != "" else tmp_data.get("_source").get("desc"),
-                                   "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get('highlight').get(
-                                       "note", "") != "" else tmp_data.get("_source").get("note"),
-                                   "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
-                    # print(tmp_data.get('highlight').get("desc"))
-                    content_result_right.append(tmp_content)
+            try:
+                es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
+            except (AttributeError, ):
+                response = render(request, 'also/404.html', )
+                response.status_code = 500
+                return response
+            else:
+                content_result_right = list()
+                if es_search_result.get('total').get("value", 0) != 0:
+                    for tmp_data in es_search_result.get("hits"):
+                        tmp_content = {"table_name": tmp_data.get('_index'),
+                                       "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get('highlight').get(
+                                           "code", "") != "" else tmp_data.get("_source").get("code"),
+                                       "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get('highlight').get(
+                                           "name", "") != "" else tmp_data.get("_source").get("name"),
+                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get('highlight').get(
+                                           "desc", "") != "" else tmp_data.get("_source").get("desc"),
+                                       "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get('highlight').get(
+                                           "note", "") != "" else tmp_data.get("_source").get("note"),
+                                       "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
+                        # print(tmp_data.get('highlight').get("desc"))
+                        content_result_right.append(tmp_content)
             # print(content_result_right)
         else:
-            es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
-            content_result_right = list()
-            if es_search_result.get('total').get("value", 0) != 0:
-                for tmp_data in es_search_result.get("hits"):
-                    tmp_content = {
-                        "title": tmp_data.get('_source').get("title") if tmp_data.get('highlight').get("title",
-                                                                                                       "") == "" else
-                        tmp_data.get('highlight').get("title")[0],
-                        "resume": tmp_data.get('_source').get("desc") if tmp_data.get('highlight').get("desc",
-                                                                                                       "") == "" else
-                        tmp_data.get('highlight').get("desc")[0],
-                        "url": tmp_data.get('_source').get("url"),
-                        "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
-                    }
-                    content_result_right.append(tmp_content)
+            try:
+                es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
+            except (AttributeError, ):
+                response = render(request, 'also/404.html', )
+                response.status_code = 500
+                return response
+            else:
+                content_result_right = list()
+                if es_search_result.get('total').get("value", 0) != 0:
+                    for tmp_data in es_search_result.get("hits"):
+                        tmp_content = {
+                            "title": tmp_data.get('_source').get("title") if tmp_data.get('highlight').get("title",
+                                                                                                           "") == "" else
+                            tmp_data.get('highlight').get("title")[0],
+                            "resume": tmp_data.get('_source').get("desc") if tmp_data.get('highlight').get("desc",
+                                                                                                           "") == "" else
+                            tmp_data.get('highlight').get("desc")[0],
+                            "url": tmp_data.get('_source').get("url"),
+                            "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                        }
+                        content_result_right.append(tmp_content)
 
         end_time = time.time()
         # 查询耗时
@@ -92,18 +104,23 @@ class ResultView(View):
         except InvalidPage:
             # 如果请求的页数不存在, 重定向页面
             return HttpResponse('找不到页面的内容')
-        except EmptyPage:
+        except (EmptyPage, Exception):
             # 如果请求的页数不在合法的页数范围内，返回结果的最后一页。
             content_result_right_page = paginator.page(paginator.num_pages)
+
         context["result_total"] = paginator.count
         context["result_total_format"] = '{:,}'.format(paginator.count)
         context['content_result_right'] = content_result_right_page
         # print(paginator.count)
+
+        # 根据参数选择对应的模板
         if context["tn"] == "dict":
             return render(request, "also/result_dict.html", context=context)
         elif context["tn"] == "also":
             return render(request, "also/result_web.html", context=context)
         elif context["tn"] == "file":
+            return render(request, "also/result_file.html", context=context)
+        else:
             return render(request, "also/result_web.html", context=context)
 
 
