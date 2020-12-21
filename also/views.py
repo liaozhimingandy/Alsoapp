@@ -83,8 +83,10 @@ class ResultView(View):
                             "resume": tmp_data.get('_source').get("desc") if tmp_data.get('highlight').get("desc",
                                                                                                            "") == "" else
                             tmp_data.get('highlight').get("desc")[0],
+                            # "resume": "北青-北京头条记者提问，近日，美国总统特朗普将美国会此前通过的“外国公司问责法案”签署成法。该法要求加严在美上市外国公司向美国监管机构披露信息的义务。美相关议员表示，该法主要针对中国。中方对此有何评论？",
                             "url": tmp_data.get('_source').get("url"),
-                            "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                            "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time())),
+                            "srcid": tmp_data.get("_id", "null")
                         }
                         content_result_right.append(tmp_content)
 
@@ -165,17 +167,17 @@ class Search:
                 "encoder": "html",
                 "fields": {
                     "title": {"pre_tags": [
-                        "<mark><em class=\"text-danger\">"
+                        "<em class=\"text-danger\">"
                     ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]},
                     "desc": {
                         "pre_tags": [
-                            "<mark><em class=\"text-danger\">"
+                            "<em class=\"text-danger\">"
                         ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]
 
                     }
@@ -209,33 +211,33 @@ class Search:
                 "encoder": "html",
                 "fields": {
                     "code": {"pre_tags": [
-                        "<mark><em class=\"text-danger\">"
+                        "<em class=\"text-danger\">"
                     ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]},
                     "desc": {
                         "pre_tags": [
-                            "<mark><em class=\"text-danger\">"
+                            "<em class=\"text-danger\">"
                         ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]
                     },
                     "name": {
                         "pre_tags": [
-                            "<mark><em class=\"text-danger\">"
+                            "<em class=\"text-danger\">"
                         ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]
                     },
                     "note": {
                         "pre_tags": [
-                            "<mark><em class=\"text-danger\">"
+                            "<em class=\"text-danger\">"
                         ],
                         "post_tags": [
-                            "</em></mark>"
+                            "</em>"
                         ]
                     }
                 }

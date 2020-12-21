@@ -13,8 +13,7 @@
     <link rel="stylesheet" href="{% static 'also/css/autocompleter.css' %}">
     <style>
         body {
-            background: #E9EBEE;
-            /*font-family: -apple-system-font, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;*/
+        {#background: #fff;#} font-family: -apple-system-font, BlinkMacSystemFont, Microsoft YaHei, Microsoft YaHei UI, Helvetica Neue, PingFang SC, Hiragino Sans GB, Arial, sans-serif;
             /* font-size: .875rem;
              font-size: 14px; */
 
@@ -22,6 +21,14 @@
 
         {#em去除斜体#}
         em {
+            font-style: normal;
+        }
+
+        .also {
+            margin-bottom: 20px;
+        }
+
+        cite {
             font-style: normal;
         }
 
@@ -36,7 +43,7 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
+<div class="container-fluid bg-white">
     <!-- Navbar -->
     <nav class="navbar navbar-expand navbar-white border-bottom border-primary fixed-top"
          style="background: #E9EBEE;" id="also-nav">
@@ -64,30 +71,39 @@
     </nav>
     <!-- /.navbar -->
     <!--    结果展示-->
-    <div class="row" id="content_wrapper" style="padding-top: 5%;">
-        <div class="col-lg-6" id="content_left">
-            <div class="alert alert-light" role="alert">
-                <ul class="nav nav-tabs" id="nav-tab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link {% if tn == 'also' %} active also-tag{% endif %}" id="tab-also"
-                           data-toggle="pill"
-                           href="{% url 'alsoapp:result' %}?tn=also&wd={{ wd }}" role="tab"
-                           aria-controls="pills-home" aria-selected="true" name="also">网页</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link {% if tn == 'file' %} active also-tag{% endif %} " id="tab-file"
-                           data-toggle="pill"
-                           href="{% url 'alsoapp:result' %}?tn=file&wd={{ wd }}" role="tab"
-                           aria-controls="pills-profile" aria-selected="false" name="file">文件</a>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <a class="nav-link {% if tn == 'dict' %} active also-tag{% endif %} " id="tab-dict"
-                           data-toggle="pill"
-                           href="{% url 'alsoapp:result' %}?tn=dict&wd={{ wd }}" role="tab"
-                           aria-controls="pills-profile" aria-selected="false" name="dict">字典</a>
-                    </li>
-                </ul>
+    <div class="wrapper_wrapper">
+        <div class="row ml-5">
+            <h1>搜索结果</h1>
+        </div>
+        {#        搜索导航条选择#}
+        <div class="row">
+            <div class="col-lg-5">
+                <div class="alert alert-light pb-0" role="alert" style="width: 100%">
+                    <ul class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link {% if tn == 'also' %} active also-tag{% endif %}" id="tab-also"
+                               data-toggle="pill"
+                               href="{% url 'alsoapp:result' %}?tn=also&wd={{ wd }}" role="tab"
+                               aria-controls="pills-home" aria-selected="true" name="also">网页</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link {% if tn == 'file' %} active also-tag{% endif %} " id="tab-file"
+                               data-toggle="pill"
+                               href="{% url 'alsoapp:result' %}?tn=file&wd={{ wd }}" role="tab"
+                               aria-controls="pills-profile" aria-selected="false" name="file">文件</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link {% if tn == 'dict' %} active also-tag{% endif %} " id="tab-dict"
+                               data-toggle="pill"
+                               href="{% url 'alsoapp:result' %}?tn=dict&wd={{ wd }}" role="tab"
+                               aria-controls="pills-profile" aria-selected="false" name="dict">字典</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
+        </div>
+        <div class="row pl-3">
+
             {#            如果关键词过长,则显示对应提示#}
             {% if msg is not None %}
                 <h6><b>{{ msg }}</b></h6>
@@ -101,56 +117,70 @@
                     <small><b>我们为您找到相关结果约{{ result_total_format }}个(用时{{ result_total_time }}秒)</b></small>
                 </h6>
 
-                {#            此处为需要显示的内容#}
-                <!--a-->
-                {% block result_content %}{% endblock %}
-                <!--z-->
             {% endif %}
-            {# 实现分页标签的代码 #}
-            {# 这里使用 bootstrap 渲染页面 #}
-            <div class="card" style="margin-bottom: 60px; border-color: #E9EBEE">
-                <div class="card-footer pb-0" style="background-color: #E9EBEE">
-                    <div id="pages" class="text-center">
-                        <nav>
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item">
-                                    {% if content_result_right.has_previous %}
-                                        <a class='active page-link'
-                                           href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.previous_page_number }}">上一页</a>
-                                    {% endif %}
-                                </li>
-                                {% for index in content_result_right.paginator.page_range %}
-                                    {#                                    如果页码列表里的一个数字正好和当前展示的这个page对象的页码一样，那么就让这个数字归为active类，也就是给它添加背景颜色。这样我们就能一眼看出我们现在处于哪一页。并且因为我们就处于这一页，所以这个数字不需要链接。#}
-                                    {% if index == content_result_right.number %}
-                                        <li class="page-item active"><a class="page-link">{{ index }}</a></li>
-                                        {#                                        其他页码需要链接，不需要背景颜色#}
-                                    {% elif index <= 8 %}
-                                        <li class="page-item"><a class="page-link"
-                                                                 href="?tn={{ tn }}&wd={{ wd }}&pn={{ index }}">{{ index }}</a>
+        </div>
+        {#    搜索结果显示#}
+        <div class="row">
+            <div class="col-lg-5" id="content_left">
+                {% if result_total != 0 %}
+                    {#            此处为需要显示的内容#}
+                    <!--a-->
+                    {% block result_content %}{% endblock %}
+                    <!--z-->
+                {% endif %}
+            </div>
+            <div class="col-lg-4 offset-lg-1" id="content-right">
+                <h5>测试版</h5>
+            </div>
+        </div>
+
+        <div class="row">
+            {% if result_total != 0 %}
+                <div class="col-lg-5">
+                    {#    分页#}
+                    <div class="card" style="margin-bottom: 60px; width: 100%">
+                        <div class="card-footer pb-0">
+                            <div id="pages" class="text-center">
+                                <nav>
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item">
+                                            {% if content_result_right.has_previous %}
+                                                <a class='active page-link'
+                                                   href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.previous_page_number }}">上一页</a>
+                                            {% endif %}
                                         </li>
-                                    {% endif %}
-                                {% endfor %}
-                                {% if content_result_right.number > 7 and content_result_right.has_next %}
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
-                                    </li>
-                                {% endif %}
-                                <li>
-                                    {% if content_result_right.has_next %}
-                                        <a class='active page-link'
-                                           href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.next_page_number }}">下一页</a>
-                                    {% endif %}
-                                </li>
-                            </ul>
-                        </nav>
+                                        {% for index in content_result_right.paginator.page_range %}
+                                            {#                                    如果页码列表里的一个数字正好和当前展示的这个page对象的页码一样，那么就让这个数字归为active类，也就是给它添加背景颜色。这样我们就能一眼看出我们现在处于哪一页。并且因为我们就处于这一页，所以这个数字不需要链接。#}
+                                            {% if index == content_result_right.number %}
+                                                <li class="page-item active"><a class="page-link">{{ index }}</a></li>
+                                                {#                                        其他页码需要链接，不需要背景颜色#}
+                                            {% elif index <= 8 %}
+                                                <li class="page-item"><a class="page-link"
+                                                                         href="?tn={{ tn }}&wd={{ wd }}&pn={{ index }}">{{ index }}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if content_result_right.number > 7 and content_result_right.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                   href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.next_page_number }}">{{ content_result_right.next_page_number }}</a>
+                                            </li>
+                                        {% endif %}
+                                        <li>
+                                            {% if content_result_right.has_next %}
+                                                <a class='active page-link'
+                                                   href="?tn={{ tn }}&wd={{ wd }}&pn={{ content_result_right.next_page_number }}">下一页</a>
+                                            {% endif %}
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
+            {% endif %}
         </div>
-        {#        右边#}
-        <div class="col-lg-2" id="content-right"><h5>测试版</h5></div>
+
     </div>
 
     <!--    footer-->
@@ -203,7 +233,7 @@
     }
     {#设置内容的左边间距和搜索框对齐#}
     {#$(".card").css("margin-left", ($("#kw").offset().left-$(".card").offset().left)+'px');#}
-    $("#content_left").css("margin-left", ($("#kw").offset().left - $(".alert").offset().left) + 'px');
+    $(".wrapper_wrapper").css("margin-left", ($("#kw").offset().left - $(".wrapper_wrapper").offset().left) + 'px');
     {#alert(($("#kw").offset().left-$("#content_wrapper").offset().left)+'px');#}
     {# console.info($("#kw").offset().left);#}
     {# console.info($("#content_left").offset().left);#}

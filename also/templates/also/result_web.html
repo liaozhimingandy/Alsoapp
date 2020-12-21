@@ -6,32 +6,37 @@
         {#查询结果展示item模板 result-list-1#}
         <div class="also">
             <!--m-->
-            <div class="result-content" data-srcid="abv" id="rank_{{ forloop.counter }}" data-tpl="result-list-1">
-                <h3 class="result-title">测试用例</h3>
-                <div class="result-body">
-                    <span style="color:#666">6天前-&nbsp;</span>
-                    <span>小米应用商店提供百度贴吧免费下载,聊兴趣，上贴吧！功能升级、视觉升级，让你感到灿然一新！兴趣频道：分类展现，精彩内容沉浸体验更过瘾 ...</span>
+            <div class="result-content" data-srcid="{{ content.srcid }}" id="rank_{{ forloop.counter }}"
+                 data-tpl="result-list-1">
+                <h5 class="result-title"><a href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></h5>
+                <div class="result-body" id="content-resume">
+                    <span style="color:#666">{{ content.create_time }}&nbsp;-&nbsp;</span>
+                    <span>{{ content.resume|safe }}</span>
                 </div>
                 <div class="result-footer">
-                    <cite class="text-muted"><a target="_blank" href="https://www.baidu.com/">百度</a></cite> &nbsp;-&nbsp;<B>&bull;</B><a></a>
+                    <cite>
+                        <a target="_blank" class="text-muted"
+                           href="{{ content.url|safe }}">{{ content.url|safe|truncatechars_html:20 }}...<b>html</b></a>
+                    </cite>
+                    <B>&bull;</B>测试版
                 </div>
                 <!--RANK:{{ forloop.counter }}-->
             </div>
             <!--n-->
         </div>
-        <div class="card border-info mb-1">
-            <div class="card-body">
-                <div class="d-flex w-100 justify-content-between">
-                    <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a
-                            href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>
-                    </h5>
-                    <h6 class="text-muted">{{ content.create_time }}</h6>
-                </div>
-                {#                        {{ 变量名|safe }} html防止转义#}
-                <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>
-                <small id="alsoapp-footer"><a href="{{ content.url }}" class="text-muted"
-                                              target="_blank">{{ content.url|safe|truncatechars_html:20 }}...<b>html</b></a><B>&bull;</B><span>测试版</span></small>
-            </div>
-        </div>
+        {#        <div class="card border-info mb-1">#}
+        {#            <div class="card-body">#}
+        {#                <div class="d-flex w-100 justify-content-between">#}
+        {#                    <h5 class="mb-1"><span class="d-inline-block text-truncate" style="width: 500px;"><a#}
+        {#                            href="{{ content.url }}" target="_blank">{{ content.title|safe }}</a></span>#}
+        {#                    </h5>#}
+        {#                    <h6 class="text-muted">{{ content.create_time }}</h6>#}
+        {#                </div>#}
+        {#                        {{ 变量名|safe }} html防止转义#}
+        {#                <p class="text-break" id="content-resume">{{ content.resume|safe }}</p>#}
+        {#                <small id="alsoapp-footer"><a href="{{ content.url }}" class="text-muted"#}
+        {#                                              target="_blank">{{ content.url|safe|truncatechars_html:20 }}...<b>html</b></a><B>&bull;</B><span>测试版</span></small>#}
+        {#            </div>#}
+        {#        </div>#}
     {% endfor %}
 {% endblock %}
