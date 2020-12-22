@@ -1,5 +1,5 @@
 {% extends 'result_base.html' %}
-
+{% load filters %}
 {#字典匹配结果部分#}
 {% block result_content %}
     <div class="card border-secondary mb-1">
@@ -17,7 +17,8 @@
                 <tbody>
                 {% for content in content_result_right %}
                     <tr>
-                        <th scope="row"> {{ forloop.counter }}</th>
+                        {#                        使用自定义过滤器,对分页序号进行累加处理#}
+                        <th scope="row"> {{ forloop.counter|counter:content_result_right.number }}</th>
                         <td>{{ content.code|safe }}</td>
                         <td>{{ content.name|safe }}</td>
                         <td>{{ content.note|safe }}</td>

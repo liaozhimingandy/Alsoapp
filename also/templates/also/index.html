@@ -37,7 +37,9 @@
     <div class="float-right d-none d-sm-block">
         <b>Version</b> 1.0<B>&bull;</B>测试版
     </div>
-    <strong>Copyright &copy; <span id="years_now" class="font-weight-bold"></span> <a href="#">zhiming</a><B>&bull;</B></strong>
+    {#        模板自定义时间#}
+    <strong>Copyright &copy; <span id="years_now" class="font-weight-bold">{% now "Y" %}</span> <a
+            href="#">zhiming</a><B>&bull;</B></strong>
     All
     rights
     reserved.
@@ -51,13 +53,5 @@
 <script src="{% static 'also/js/bootstrap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/jquery.autocompleter.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/also.js' %}"></script>
-<script type="text/javascript">
-    /*赋值授权时间*/
-    $(function () {
-        const now = new Date();
-        const year = now.getFullYear();
-        $("#years_now").html(year);
-    })
-</script>
 </body>
 </html>

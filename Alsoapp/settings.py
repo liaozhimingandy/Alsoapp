@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'also'
+    'also',
+    "also.templatetags",  # 自定义过滤器
 ]
 
 MIDDLEWARE = [

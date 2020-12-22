@@ -1,6 +1,28 @@
 {% extends 'result_base.html' %}
-
+{% load filters %}
 {#文档匹配结果部分#}
 {% block result_content %}
-    文件或路径相关信息
+    {% for content in content_result_right %}
+        {#查询结果展示item模板 result-list-1#}
+        <div class="also">
+            <!--m-->
+            <div class="result-content" data-srcid="{{ content.srcid }}" id="rank_{{ forloop.counter }}"
+                 data-tpl="result-list-1">
+                <h5 class="result-title">{{ content.title|safe }}</h5>
+                <div class="result-body bg-light p-1" style="word-break: break-all">
+                    <h5><code id="copy_{{ forloop.counter|counter:content_result_right.number }}"
+                              value="123">C:\Users\zhiming\OneDrive\文档\docker-compose\elasticsearch\README.md</code>
+                    </h5>
+                </div>
+                <div class="result-footer">
+                    {{ content.create_time }}&nbsp;|&nbsp;20kb&nbsp;|&nbsp;md&nbsp;|&nbsp;DESKTOP-LNTDROL&nbsp;|&nbsp;
+                    {#                    todo: 使用了clipboard.js,想要实现复制功能,如若还是无法复制,则请删除对应的引用#}
+                    <button type="button" class="btn btn-link p-0" data-clipboard-text="123">复制
+                    </button>
+                </div>
+                <!--RANK:{{ forloop.counter }}-->
+            </div>
+            <!--n-->
+        </div>
+    {% endfor %}
 {% endblock %}

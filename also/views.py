@@ -11,6 +11,11 @@ from elasticsearch.exceptions import ConnectionError
 
 es = Elasticsearch(['127.0.0.1:9200'])
 
+# 常量分页结果大小
+DICT_PAGE_SIZE = 10
+WEB_PAGE_SIZE = 10
+DEFAULT_PAGE_SIZE = 10
+
 
 # Create your views here.
 class DefaultView(View):
@@ -24,9 +29,10 @@ class ResultView(View):
     def get(cls, request):
         # print(request.GET.get("q"))
         context = dict()
-        context["wd"] = request.GET.get("wd")
+        # 处理含有多个关键词问题
+        context["wd"] = "".join(request.GET.getlist("wd"))
         context["tn"] = request.GET.get("tn")
-        if context["wd"] is None and context["tn"] is None:
+        if any((context["wd"] == "", context["tn"] is None)):
             return HttpResponseRedirect("/")
 
         # todo:限制关键词为40个汉字
@@ -44,7 +50,7 @@ class ResultView(View):
         if context["tn"] == "dict":
             try:
                 es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
-            except (AttributeError, ):
+            except (AttributeError,):
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -53,13 +59,17 @@ class ResultView(View):
                 if es_search_result.get('total').get("value", 0) != 0:
                     for tmp_data in es_search_result.get("hits"):
                         tmp_content = {"table_name": tmp_data.get('_index'),
-                                       "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get('highlight').get(
+                                       "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get(
+                                           'highlight').get(
                                            "code", "") != "" else tmp_data.get("_source").get("code"),
-                                       "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get('highlight').get(
+                                       "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get(
+                                           'highlight').get(
                                            "name", "") != "" else tmp_data.get("_source").get("name"),
-                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get('highlight').get(
+                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get(
+                                           'highlight').get(
                                            "desc", "") != "" else tmp_data.get("_source").get("desc"),
-                                       "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get('highlight').get(
+                                       "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get(
+                                           'highlight').get(
                                            "note", "") != "" else tmp_data.get("_source").get("note"),
                                        "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
                         # print(tmp_data.get('highlight').get("desc"))
@@ -68,7 +78,7 @@ class ResultView(View):
         else:
             try:
                 es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
-            except (AttributeError, ):
+            except (AttributeError,):
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -94,7 +104,16 @@ class ResultView(View):
         # 查询耗时
         context["result_total_time"] = '{:.3f}'.format(end_time - start_time)
         # 数据分页
-        paginator = Paginator(content_result_right, 10)  # 页面分页
+        # 根据参数选择对应的分页大小
+        if context["tn"] == "dict":
+            paginator = Paginator(content_result_right, DICT_PAGE_SIZE)  # 页面分页
+        elif context["tn"] == "also":
+            paginator = Paginator(content_result_right, WEB_PAGE_SIZE)  # 页面分页
+        elif context["tn"] == "file":
+            paginator = Paginator(content_result_right, DEFAULT_PAGE_SIZE)  # 页面分页
+        else:
+            paginator = Paginator(content_result_right, DEFAULT_PAGE_SIZE)  # 页面分页
+
         try:
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
             page = request.GET.get('pn')
