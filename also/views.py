@@ -45,7 +45,7 @@ class ResultView(View):
             try:
                 es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
             except (AttributeError, ):
-                response = render(request, 'also/404.html', )
+                response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
             else:
@@ -69,7 +69,7 @@ class ResultView(View):
             try:
                 es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
             except (AttributeError, ):
-                response = render(request, 'also/404.html', )
+                response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
             else:
