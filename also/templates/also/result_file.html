@@ -1,4 +1,5 @@
 {% extends 'result_base.html' %}
+{% load static %}
 {% load filters %}
 {#文档匹配结果部分#}
 {% block result_content %}
@@ -6,23 +7,38 @@
         {#查询结果展示item模板 result-list-1#}
         <div class="also">
             <!--m-->
-            <div class="result-content" data-srcid="{{ content.srcid }}" id="rank_{{ forloop.counter }}"
+            <div class="result-content" data-srcid="{{ content.srcid }}" id="rank_{{ forloop.counter|counter:content_result_right.number }}"
                  data-tpl="result-list-1">
-                <h5 class="result-title">{{ content.title|safe }}</h5>
-                <div class="result-body bg-light p-1" style="word-break: break-all">
-                    <h5><code id="copy_{{ forloop.counter|counter:content_result_right.number }}"
-                              value="123">C:\Users\zhiming\OneDrive\文档\docker-compose\elasticsearch\README.md</code>
+                <h5 class="result-title">{{ content.file_name|safe }}</h5>
+                <div class="result-body bg-dark p-1" style="word-break: break-all">
+                    <h5><code class="text-white">{{ content.path|safe }}</code>
                     </h5>
                 </div>
                 <div class="result-footer">
-                    {{ content.create_time }}&nbsp;|&nbsp;20kb&nbsp;|&nbsp;md&nbsp;|&nbsp;DESKTOP-LNTDROL&nbsp;|&nbsp;
-                    {#                    todo: 使用了clipboard.js,想要实现复制功能,如若还是无法复制,则请删除对应的引用#}
-                    <button type="button" class="btn btn-link p-0" data-clipboard-text="123">复制
+                    {{ content.create_time|truncatechars_html:10 }}&nbsp;|&nbsp;20kb&nbsp;|&nbsp;md&nbsp;|&nbsp;DESKTOP-LNTDROL&nbsp;|&nbsp;
+                    {#                   已解决: 使用了clipboard.js,想要实现复制功能,如若还是无法复制,则请删除对应的引用#}
+                    <button type="button" class="btn btn-link p-0 btn-file-copy" data-clipboard-text="{{ content.path|safe }}">路径复制
                     </button>
                 </div>
-                <!--RANK:{{ forloop.counter }}-->
+                <!--RANK:{{ forloop.counter|counter:content_result_right.number }}-->
             </div>
             <!--n-->
         </div>
     {% endfor %}
+
+{% endblock %}
+{% block result_user_js %}
+    {#复制粘贴使用#}
+<script type="text/javascript" src="{% static 'also/js/clipboard.min.js' %}"></script>
+<script>
+
+    var clipboard = new ClipboardJS('.btn-file-copy');
+
+    clipboard.on('success', function (e) {
+        console.log(e);
+    });
+    clipboard.on('error', function (e) {
+        console.log(e);
+    });
+ </script>
 {% endblock %}

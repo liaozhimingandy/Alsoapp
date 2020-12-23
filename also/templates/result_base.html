@@ -204,8 +204,7 @@
 <script src="{% static 'also/js/bootstrap.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/jquery.autocompleter.js' %}"></script>
 <script type="text/javascript" src="{% static 'also/js/also.js' %}"></script>
-{#复制粘贴使用#}
-<script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+
 <script type="text/javascript">
     {#tab按钮设置点击事件#}
     document.getElementById('tab-also').onclick = function () {
@@ -247,5 +246,6 @@
         }
     }
 </script>
+{% block result_user_js %}{% endblock %}
 </body>
 </html>

@@ -1,7 +1,7 @@
-PUT also_files
+PUT search_word
     {
      "aliases":{
-        "file":{
+        "search_wd":{
             }
         },
      "settings":{
@@ -10,7 +10,7 @@ PUT also_files
     },
       "mappings": {
         "properties": {
-          "file_name": {
+          "word": {
             "type": "text",
             "analyzer": "ik_max_word",
             "fields" : {
@@ -20,21 +20,11 @@ PUT also_files
               }
           }
           },
-          "desc": {
-            "type": "text",
-            "analyzer": "ik_max_word"
+          "count": {
+            "type": "integer"
           },
-          "content": {
-            "type": "text",
-            "analyzer": "ik_max_word"
-          },
-          "path": {
-            "type": "text",
-            "analyzer": "ik_max_word"
-          },
-          "offical": {
-            "type": "text",
-            "analyzer": "ik_smart"
+          "@ip": {
+            "type": "ip"
           },
           "tags": {
             "type": "text",
@@ -46,21 +36,11 @@ PUT also_files
           "@timestamp":{
               "type":"date",
               "format":"strict_date_optional_time||epoch_millis"
+          },
+          "timestamp":{                       
+              "type":"date",
+              "format":"strict_date_optional_time||epoch_millis"
           }
         }
       }
     }
-
- 测试数据
- POST also_files/_doc
-{
-  "file_name": "测试文档A",
-  "desc": "test",
-  "content": "",
-  "path": "C:\\Users\\caradigm\\Documents\\Alsoapp\\also\\config\\es_file.txt",
-  "offical": "caradigmQW",
-  "tags": ["caradigm", "abv"],
-  "deleted": false,
-  "@timestamp": "2020-12-23T14:30:00Z"
-}
-

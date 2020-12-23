@@ -75,6 +75,36 @@ class ResultView(View):
                         # print(tmp_data.get('highlight').get("desc"))
                         content_result_right.append(tmp_content)
             # print(content_result_right)
+        elif context["tn"] == "file":
+            try:
+                es_search_result = Search.es_search_file(search_wd=search_wd).get("hits")
+            except (AttributeError,):
+                response = render(request, 'also/500.html', )
+                response.status_code = 500
+                return response
+            else:
+                content_result_right = list()
+                if es_search_result.get('total').get("value", 0) != 0:
+                    for tmp_data in es_search_result.get("hits"):
+                        tmp_content = {"table_name": tmp_data.get('_index'),
+                                       "file_name": tmp_data.get('highlight').get("file_name")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "file_name", "") != "" else tmp_data.get("_source").get("file_name"),
+                                       "content": tmp_data.get('highlight').get("content")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "content", "") != "" else tmp_data.get("_source").get("content"),
+                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "desc", "") != "" else tmp_data.get("_source").get("desc"),
+                                       "tags": tmp_data.get('highlight').get("tags")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "tags", "") != "" else tmp_data.get("_source").get("tags"),
+                                       "path": tmp_data.get('_source').get("path"),
+                                       "create_time": tmp_data.get('highlight').get("@timestamp")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "@timestamp", "") != "" else tmp_data.get("_source").get("@timestamp")}
+                        # print(tmp_data.get('highlight').get("desc"))
+                        content_result_right.append(tmp_content)
         else:
             try:
                 es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
@@ -86,12 +116,15 @@ class ResultView(View):
                 content_result_right = list()
                 if es_search_result.get('total').get("value", 0) != 0:
                     for tmp_data in es_search_result.get("hits"):
+                        # print(tmp_data)
                         tmp_content = {
-                            "title": tmp_data.get('_source').get("title") if tmp_data.get('highlight').get("title",
-                                                                                                           "") == "" else
+                            "title": tmp_data.get('_source').get("title") if (tmp_data.get(
+                                'highlight', "") == "" or tmp_data.get('highlight', "").get("title",
+                                                                                                           "") == "") else
                             tmp_data.get('highlight').get("title")[0],
-                            "resume": tmp_data.get('_source').get("desc") if tmp_data.get('highlight').get("desc",
-                                                                                                           "") == "" else
+                            "resume": tmp_data.get('_source').get("desc") if (tmp_data.get(
+                                'highlight', "") == "" or tmp_data.get('highlight').get("desc",
+                                                                                                           "") == "") else
                             tmp_data.get('highlight').get("desc")[0],
                             # "resume": "北青-北京头条记者提问，近日，美国总统特朗普将美国会此前通过的“外国公司问责法案”签署成法。该法要求加严在美上市外国公司向美国监管机构披露信息的义务。美相关议员表示，该法主要针对中国。中方对此有何评论？",
                             "url": tmp_data.get('_source').get("url"),
@@ -124,7 +157,10 @@ class ResultView(View):
             content_result_right_page = paginator.page(1)
         except InvalidPage:
             # 如果请求的页数不存在, 重定向页面
-            return HttpResponse('找不到页面的内容')
+            # return HttpResponse('找不到页面的内容')
+            response = render(request, 'also/404.html', )
+            response.status_code = 404
+            return response
         except (EmptyPage, Exception):
             # 如果请求的页数不在合法的页数范围内，返回结果的最后一页。
             content_result_right_page = paginator.page(paginator.num_pages)
@@ -264,6 +300,63 @@ class Search:
         }
         try:
             search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                                   'hits.hits.highlight',
+                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+        except ConnectionError as e:
+            print(e)
+            return
+        else:
+            return search_result
+
+    @staticmethod
+    def es_search_file(search_wd):
+        _query = {
+            "query": {
+                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                    "query": search_wd  # 搜索的字段和关键词
+                    , "fields": ["file_name", "desc", "content", "tags"]
+                }
+            },
+            "_source": ["file_name", "desc", "content", "tags", "offical", "path", "@timestamp"],
+            "highlight": {  # 结果高亮
+                "encoder": "html",
+                "fields": {
+                    "file_name": {"pre_tags": [
+                        "<em class=\"text-danger\">"
+                    ],
+                        "post_tags": [
+                            "</em>"
+                        ]},
+                    "desc": {
+                        "pre_tags": [
+                            "<em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em>"
+                        ]
+                    },
+                    "content": {
+                        "pre_tags": [
+                            "<em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em>"
+                        ]
+                    },
+                    "tags": {
+                        "pre_tags": [
+                            "<em class=\"text-danger\">"
+                        ],
+                        "post_tags": [
+                            "</em>"
+                        ]
+                    }
+                }
+            }
+        }
+        try:
+            search_result = es.search(index="file", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'])  # index不指定,代表所有索引下进行查找

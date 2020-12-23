@@ -1,7 +1,7 @@
-PUT twitter2
+PUT links
     {
      "aliases":{
-        "hello":{
+        "web":{
             }
         },
      "settings":{
@@ -59,3 +59,17 @@ PUT twitter2
         }
       }
     }
+
+ 测试数据
+ POST links/_doc
+{
+  "title": "B百度",
+  "desc": "test",
+  "content": "",
+  "url": "https://www.baidu.com/",
+  "offical": "caradigm",
+  "img_url": "https://www.baidu.com/",
+  "tags": ["caradigm", "abv"],
+  "deleted": false,
+  "@timestamp": "2020-12-23T14:30:00Z"
+}
