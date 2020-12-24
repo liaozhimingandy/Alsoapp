@@ -7,9 +7,16 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from elasticsearch import Elasticsearch
-from elasticsearch.exceptions import ConnectionError
+from elasticsearch.exceptions import ConnectionError, NotFoundError
 
-es = Elasticsearch(['127.0.0.1:9200'])
+es = Elasticsearch(['127.0.0.1:9200'],
+                   # 在做任何操作之前，先进行嗅探
+                   # sniff_on_start=True,
+                   # 节点没有响应时，进行刷新，重新连接
+                   sniff_on_connection_fail=True,
+                   # 每 60 秒刷新一次
+                   # sniffer_timeout=60
+                   )
 
 # 常量分页结果大小
 DICT_PAGE_SIZE = 10
@@ -57,7 +64,7 @@ class ResultView(View):
         if context["tn"] == "dict":
             try:
                 es_search_result = Search.es_search_dict(search_wd=search_wd).get("hits")
-            except (AttributeError,):
+            except (AttributeError, NotFoundError,):
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -85,7 +92,8 @@ class ResultView(View):
         elif context["tn"] == "file":
             try:
                 es_search_result = Search.es_search_file(search_wd=search_wd).get("hits")
-            except (AttributeError,):
+                # print(es_search_result)
+            except (AttributeError, NotFoundError,):
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -115,7 +123,7 @@ class ResultView(View):
         else:
             try:
                 es_search_result = Search.es_search_web(search_wd=search_wd).get("hits")
-            except (AttributeError,):
+            except (AttributeError, NotFoundError,):
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -229,7 +237,7 @@ class Search:
                         }
                     }, {
                         # 过滤掉已删除的记录
-                        'term': {'deleted': 'false'}
+                        "term": {"deleted": "false"}
                     }
                     ]
                 }
@@ -258,7 +266,7 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="web", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+            search_result = es.search(index="web", body=_query, size=1000, request_timeout=1, ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -281,7 +289,7 @@ class Search:
                         }
                     }, {
                         # 过滤掉已删除的记录
-                        'term': {'deleted': 'false'}
+                        "term": {"deleted": "false"}
                     }
                     ]
                 }
@@ -324,7 +332,7 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+            search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -347,7 +355,7 @@ class Search:
                     },
                         {
                             # 过滤掉已删除的记录
-                            'term': {'deleted': 'false'}
+                            "term": {"deleted": "false"}
                         }
                     ]
                 }
@@ -390,7 +398,7 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="file", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
+            search_result = es.search(index="file", body=_query, size=1000, request_timeout=1, ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -413,19 +421,21 @@ class Search:
                     }],
                     # 查询后进行过滤
                     'filter': [
-                        {'term': {'deleted': 'true'}}
+                        {"term": {"deleted": "false"}}
                     ]
                 }
             },
-            "_source": ["word", "count"],
-            "sort": [
-                {"count": "desc"}
-            ]
+            "_source": ["word", "count"]
+            # 使用了自定义排序后，就不会有_socre得分
+            # "sort": [
+            #     {"count": "desc"}
+            # ]
         }
         try:
-            search_result = es.search(index="search_wd", body=_query, size=search_limit, request_timeout=1,
-                                      ignore=[400, 404],
-                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+            search_result = es.search(index="word", body=_query, size=search_limit, request_timeout=1,
+                                      ignore=[400, ],
+                                      filter_path=['hits.total', 'hits.hits._score', 'hits.hits._index',
+                                                   'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
@@ -434,8 +444,9 @@ class Search:
             if search_result.get("hits").get("total").get("value", 0) > 0:
                 list_sug = list()
                 for tmp_data in search_result.get("hits").get("hits"):
+                    # print(tmp_data)
                     list_sug.append(
-                        {"label": tmp_data.get("_source").get("word"), "count": tmp_data.get("_source").get("count")})
+                        {"label": tmp_data.get("_source").get("word"), "score": tmp_data.get("_score")})
             else:
                 list_sug = [{"label": "搜索一下"}]
             return {"error": 0, "msg": "查询成功!", "result": list_sug}
@@ -444,33 +455,43 @@ class Search:
     def es_query_suggest(search_wd):
         _body = {
             "query": {
-                "term": {
+                "match_phrase": {
                     "word": search_wd
                 }
             }
         }
         # todo: 完善用户搜索时写入数据库操作
-        result = es.search(index="search_word", body=_body, filter_path=["hits.hits._id", "hits.hits._source"])
+        result = es.search(index="word", body=_body,
+                           filter_path=['hits.total', "hits.hits._id", "hits.hits._source"])
         # if result.get("hits").get("total").get("value", 0) > 0:
-
-        return {"error": 0, "msg": "查询成功!", "result": result.get("hits").get("hits")}
+        # print(result)
+        return {"error": 0, "msg": "查询成功!", "result": result.get("hits").get("hits") if result.get("hits").get(
+            "total").get("value", 0) > 0 else "未有匹配数据!"}
 
     @staticmethod
     def es_insert_suggest(sug_word, ip):
+        # 去除空格
+        sug_word = sug_word.replace(" ", "")
         _body = {
             "word": sug_word,
             "@ip": ip,
-            "timestamp": None,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.localtime()),
             "@timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.localtime()),
             "count": 1,
             "tags": ["百度", "实时"],
             "deleted": False
         }
-
-        result = es.index(index="search_word", body=_body)
-        es_query = Search.es_query_suggest(search_wd=sug_word)
-        print(es_query)
-        print(result)
+        es_query = Search.es_query_suggest(search_wd=sug_word).get("result")[0]
+        if isinstance(es_query, dict):
+            _body["count"] = es_query.get("_source").get("count") + 1
+            _body["@ip"] = es_query.get("_source").get("@ip")
+            _body["@timestamp"] = es_query.get("_source").get("@timestamp")
+            # 更新数据;create需要指定id
+            result = es.update(index="search_word", body={"doc": _body}, id=es_query.get("_id"))
+        else:
+            result = es.index(index="search_word", body=_body)
+        return {"error": 0, "msg": result.get("result")}
+        # print(result)
 
 
 class Utils:
