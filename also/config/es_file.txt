@@ -20,10 +20,6 @@ PUT also_files
               }
           }
           },
-          "desc": {
-            "type": "text",
-            "analyzer": "ik_max_word"
-          },
           "content": {
             "type": "text",
             "analyzer": "ik_max_word"
@@ -40,6 +36,9 @@ PUT also_files
             "type": "text",
             "analyzer": "ik_smart"
           },
+           "is_directory": {
+            "type": "boolean"
+          },
           "deleted": {
             "type": "boolean"
           },
@@ -55,11 +54,11 @@ PUT also_files
  POST also_files/_doc
 {
   "file_name": "测试文档A",
-  "desc": "test",
   "content": "",
   "path": "C:\\Users\\caradigm\\Documents\\Alsoapp\\also\\config\\es_file.txt",
   "offical": "caradigmQW",
   "tags": ["caradigm", "abv"],
+  "is_directory": true,
   "deleted": false,
   "@timestamp": "2020-12-23T14:30:00Z"
 }

@@ -20,22 +20,28 @@ DEFAULT_PAGE_SIZE = 10
 # Create your views here.
 class DefaultView(View):
     def get(self, request):
-        return render(request, "also/index.html")
+        context = dict()
+        # 获取请求者ip地址
+        ip = Utils.get_ip(request)
+        context["ip"] = ip
+        return render(request, "also/index.html", context=context)
 
 
 class ResultView(View):
 
     @classmethod
     def get(cls, request):
-        # print(request.GET.get("q"))
         context = dict()
+        # 获取请求ip
+        ip = Utils.get_ip(request)
+        context["ip"] = ip
         # 处理含有多个关键词问题
         context["wd"] = "".join(request.GET.getlist("wd"))
         context["tn"] = request.GET.get("tn")
         if any((context["wd"] == "", context["tn"] is None)):
             return HttpResponseRedirect("/")
 
-        # todo:限制关键词为40个汉字
+        # 限制关键词为40个汉字
         if len(context["wd"].encode("utf8")) >= 80:
             search_wd = context["wd"].encode("utf8")[0:80].decode("utf8")
             context["msg"] = f"\"{search_wd[-3:]}\"及其后面的字词均被忽略，因为我们的查询限制在40个汉字以内"
@@ -120,11 +126,11 @@ class ResultView(View):
                         tmp_content = {
                             "title": tmp_data.get('_source').get("title") if (tmp_data.get(
                                 'highlight', "") == "" or tmp_data.get('highlight', "").get("title",
-                                                                                                           "") == "") else
+                                                                                            "") == "") else
                             tmp_data.get('highlight').get("title")[0],
                             "resume": tmp_data.get('_source').get("desc") if (tmp_data.get(
                                 'highlight', "") == "" or tmp_data.get('highlight').get("desc",
-                                                                                                           "") == "") else
+                                                                                        "") == "") else
                             tmp_data.get('highlight').get("desc")[0],
                             # "resume": "北青-北京头条记者提问，近日，美国总统特朗普将美国会此前通过的“外国公司问责法案”签署成法。该法要求加严在美上市外国公司向美国监管机构披露信息的义务。美相关议员表示，该法主要针对中国。中方对此有何评论？",
                             "url": tmp_data.get('_source').get("url"),
@@ -190,7 +196,7 @@ class SuggestView(View):
         limit = request.GET.get("limit")
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
-        sug = [{"label": "百度"}, {"label": "中华人民共和国"}, {"label": "谷歌"},  {"label": "搜索"}]
+        sug = [{"label": "百度"}, {"label": "中华人民共和国"}, {"label": "谷歌"}, {"label": "搜索"}]
         return JsonResponse(sug, safe=False)
 
 
@@ -365,3 +371,17 @@ class Search:
             return
         else:
             return search_result
+
+
+class Utils:
+    """工具类"""
+    # X-Forwarded-For:简称XFF头，它代表客户端，也就是HTTP的请求端真实的IP，只有在通过了HTTP 代理或者负载均衡服务器时才会添加该项。
+    @staticmethod
+    def get_ip(request):
+        """获取请求者的IP信息"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')  # 判断是否使用代理
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]  # 使用代理获取真实的ip
+        else:
+            ip = request.META.get('REMOTE_ADDR')  # 未使用代理获取IP
+        return ip
