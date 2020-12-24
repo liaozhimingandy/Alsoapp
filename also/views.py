@@ -190,7 +190,7 @@ class SuggestView(View):
         limit = request.GET.get("limit")
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
-        sug = [{"label": "中国"}, {"label": "中华人民共和国"}, {"label": "China"}]
+        sug = [{"label": "百度"}, {"label": "中华人民共和国"}, {"label": "谷歌"},  {"label": "搜索"}]
         return JsonResponse(sug, safe=False)
 
 

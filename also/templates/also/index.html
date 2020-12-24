@@ -15,14 +15,14 @@
 <body>
 <div class="container-fluid">
     {#    搜索框位置#}
-    <form onsubmit="return false;" style="margin-top: 13%;">
+    <form onsubmit="return false;" style="margin-top: 13%;" name="form-search">
         <div class="form-row justify-content-center">
             <div class="col-md-8 col-lg-5">
                 {% csrf_token %}
                 <div class="input-group mb-2 mr-sm-2">
                     <input type="text" id="kw" class="form-control" placeholder="此处输入你要搜索的内容..."
                            value="{% if wd is not None %}{{ wd }} {% endif %}"
-                           onkeydown="enter_search(event)"/>
+                           onkeydown="enter_search(event)" autofocus/>
                     <div class="input-group-append">
                         <button class="btn btn-primary" type="button" onclick="to_search(event);">&nbsp;搜索一下&nbsp;
                         </button>
