@@ -192,11 +192,13 @@ class SuggestView(View):
 
     @classmethod
     def get(cls, request):
-        q = request.GET.get("query")
-        limit = request.GET.get("limit")
+        sug_wd = request.GET.get("query")
+        sug_limit = request.GET.get("limit")
+        elasticsearch_result = Search.es_search_sugest(search_wd=sug_wd, search_limit=sug_limit)
+        # print(elasticsearch_result)
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
-        sug = [{"label": "百度"}, {"label": "中华人民共和国"}, {"label": "谷歌"}, {"label": "搜索"}]
+        sug = elasticsearch_result.get("result") if elasticsearch_result.get("error") == 0 else [{"label": "搜索一下"}]
         return JsonResponse(sug, safe=False)
 
 
@@ -218,9 +220,17 @@ class Search:
     def es_search_web(search_wd):
         _query = {
             "query": {
+                "bool": {
+                    "must": [{
                 "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
                     "query": search_wd  # 搜索的字段和关键词
                     , "fields": ["title", "desc", "content", "tag"]
+                }
+                    },{
+                        # 过滤掉已删除的记录
+                        'term': {'deleted': 'false'}
+                    }
+                    ]
                 }
             },
             "_source": ["title", "desc", "content", "tag", "url"],
@@ -250,7 +260,7 @@ class Search:
             search_result = es.search(index="web", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
-                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+                                                   'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
             # print(e)
             return
@@ -262,9 +272,17 @@ class Search:
     def es_search_dict(search_wd):
         _query = {
             "query": {
-                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
-                    "query": search_wd  # 搜索的字段和关键词
-                    , "fields": ["code", "desc", "note", "name"]
+                "bool": {
+                    "must": [{
+                        "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                            "query": search_wd  # 搜索的字段和关键词
+                            , "fields": ["code", "desc", "note", "name"]
+                        }
+                    },{
+                        # 过滤掉已删除的记录
+                        'term': {'deleted': 'false'}
+                    }
+                    ]
                 }
             },
             "_source": ["code", "desc", "note", "name", "offical"],
@@ -308,7 +326,7 @@ class Search:
             search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
-                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+                                                   'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
             print(e)
             return
@@ -319,9 +337,18 @@ class Search:
     def es_search_file(search_wd):
         _query = {
             "query": {
-                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
-                    "query": search_wd  # 搜索的字段和关键词
-                    , "fields": ["file_name", "desc", "content", "tags"]
+                "bool": {
+                    "must": [{
+                        "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                            "query": search_wd  # 搜索的字段和关键词
+                            , "fields": ["file_name", "desc", "content", "tags"]
+                        }
+                    },
+                        {
+                            # 过滤掉已删除的记录
+                            'term': {'deleted': 'false'}
+                        }
+                    ]
                 }
             },
             "_source": ["file_name", "desc", "content", "tags", "offical", "path", "@timestamp"],
@@ -365,16 +392,58 @@ class Search:
             search_result = es.search(index="file", body=_query, size=1000, request_timeout=1, ignore=[400, 404],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
-                                                   'hits.hits._id'])  # index不指定,代表所有索引下进行查找
+                                                   'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
             print(e)
             return
         else:
             return search_result
 
+    @staticmethod
+    def es_search_sugest(search_wd, search_limit=5):
+        _query = {
+            "query": {
+                "bool": {
+                    "must": [{
+                        "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                            "query": search_wd  # 搜索的字段和关键词
+                            , "fields": ["word"]
+                        }
+                    },
+                        {
+                            # 过滤掉已删除的记录
+                            'term': {'deleted': 'true'}
+                        }
+                    ]
+                }
+            },
+            "_source": ["word", "count"],
+            "sort": [
+                {"count": "desc"}
+            ]
+        }
+        try:
+            search_result = es.search(index="search_wd", body=_query, size=search_limit, request_timeout=1,
+                                      ignore=[400, 404],
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                                   'hits.hits.highlight',
+                                                   'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
+        except ConnectionError as e:
+            return {"error": 1, "msg": e}
+        else:
+            if search_result.get("hits").get("total").get("value", 0) > 0:
+                list_sug = list()
+                for tmp_data in search_result.get("hits").get("hits"):
+                    list_sug.append(
+                        {"label": tmp_data.get("_source").get("word"), "count": tmp_data.get("_source").get("count")})
+            else:
+                list_sug = [{"label": "搜索一下"}]
+            return {"error": 0, "msg": "查询成功!", "result": list_sug}
+
 
 class Utils:
     """工具类"""
+
     # X-Forwarded-For:简称XFF头，它代表客户端，也就是HTTP的请求端真实的IP，只有在通过了HTTP 代理或者负载均衡服务器时才会添加该项。
     @staticmethod
     def get_ip(request):

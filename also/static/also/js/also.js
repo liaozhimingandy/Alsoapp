@@ -15,13 +15,16 @@ $(function () {
     $('#kw').autocompleter({
         // marker for autocomplete matches
         highlightMatches: true,
-
+        matchContains: true,
+        cache: false,
         // object to local or url to remote search
         // source: colors,
         // 请求后台数据
         source: 'sug',
         // custom template
         //template: '{{ label }} <span>({{ hex }})</span>',
+        // 不能替换lable,否则报错;'{{ label }}<span>{{ count }}</span>',内容需要空格隔开
+        // customValue: "label",
         template: '{{ label }}',
         // show hint
         hint: true,
@@ -30,13 +33,14 @@ $(function () {
         empty: false,
 
         // max results
-        limit: 5,
+        limit: 8,
 
         callback: function (value, index, selected) {
             // console.info("value=" + value);
             if (selected) {
                 // $('.icon').css('background-color', selected.hex);
-                console.info(selected.label);
+                console.info("您选择了:"+selected.label+"(" + selected.count + ")");
+
             }
         }
     });
