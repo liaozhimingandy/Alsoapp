@@ -40,7 +40,8 @@ class ResultView(View):
         context["tn"] = request.GET.get("tn")
         if any((context["wd"] == "", context["tn"] is None)):
             return HttpResponseRedirect("/")
-
+        # 将用户查询的数据写入search_word表
+        Search.es_insert_suggest(sug_word=context["wd"], ip=ip)
         # 限制关键词为40个汉字
         if len(context["wd"].encode("utf8")) >= 80:
             search_wd = context["wd"].encode("utf8")[0:80].decode("utf8")
@@ -194,7 +195,7 @@ class SuggestView(View):
     def get(cls, request):
         sug_wd = request.GET.get("query")
         sug_limit = request.GET.get("limit")
-        elasticsearch_result = Search.es_search_sugest(search_wd=sug_wd, search_limit=sug_limit)
+        elasticsearch_result = Search.es_search_suggest(search_wd=sug_wd, search_limit=sug_limit)
         # print(elasticsearch_result)
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
@@ -222,11 +223,11 @@ class Search:
             "query": {
                 "bool": {
                     "must": [{
-                "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
-                    "query": search_wd  # 搜索的字段和关键词
-                    , "fields": ["title", "desc", "content", "tag"]
-                }
-                    },{
+                        "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
+                            "query": search_wd  # 搜索的字段和关键词
+                            , "fields": ["title", "desc", "content", "tag"]
+                        }
+                    }, {
                         # 过滤掉已删除的记录
                         'term': {'deleted': 'false'}
                     }
@@ -278,7 +279,7 @@ class Search:
                             "query": search_wd  # 搜索的字段和关键词
                             , "fields": ["code", "desc", "note", "name"]
                         }
-                    },{
+                    }, {
                         # 过滤掉已删除的记录
                         'term': {'deleted': 'false'}
                     }
@@ -400,7 +401,7 @@ class Search:
             return search_result
 
     @staticmethod
-    def es_search_sugest(search_wd, search_limit=5):
+    def es_search_suggest(search_wd, search_limit=5):
         _query = {
             "query": {
                 "bool": {
@@ -409,11 +410,10 @@ class Search:
                             "query": search_wd  # 搜索的字段和关键词
                             , "fields": ["word"]
                         }
-                    },
-                        {
-                            # 过滤掉已删除的记录
-                            'term': {'deleted': 'true'}
-                        }
+                    }],
+                    # 查询后进行过滤
+                    'filter': [
+                        {'term': {'deleted': 'true'}}
                     ]
                 }
             },
@@ -439,6 +439,38 @@ class Search:
             else:
                 list_sug = [{"label": "搜索一下"}]
             return {"error": 0, "msg": "查询成功!", "result": list_sug}
+
+    @staticmethod
+    def es_query_suggest(search_wd):
+        _body = {
+            "query": {
+                "term": {
+                    "word": search_wd
+                }
+            }
+        }
+        # todo: 完善用户搜索时写入数据库操作
+        result = es.search(index="search_word", body=_body, filter_path=["hits.hits._id", "hits.hits._source"])
+        # if result.get("hits").get("total").get("value", 0) > 0:
+
+        return {"error": 0, "msg": "查询成功!", "result": result.get("hits").get("hits")}
+
+    @staticmethod
+    def es_insert_suggest(sug_word, ip):
+        _body = {
+            "word": sug_word,
+            "@ip": ip,
+            "timestamp": None,
+            "@timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.localtime()),
+            "count": 1,
+            "tags": ["百度", "实时"],
+            "deleted": False
+        }
+
+        result = es.index(index="search_word", body=_body)
+        es_query = Search.es_query_suggest(search_wd=sug_word)
+        print(es_query)
+        print(result)
 
 
 class Utils:
