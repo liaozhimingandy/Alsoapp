@@ -1,4 +1,6 @@
 import time
+import json
+from pathlib import Path
 
 from django.shortcuts import render
 from django.views.generic import View  # 导入类试图
@@ -9,7 +11,13 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConnectionError, NotFoundError
 
-es = Elasticsearch(['127.0.0.1:9200'],
+
+# 配置文件
+# config_file = Path(["config", "config.json"])
+paths = ["also", "config", "config.json"]
+config = json.loads(Path.cwd().joinpath(*paths).read_text())
+
+es = Elasticsearch(config.get("elasticsearch_cluster"),
                    # 在做任何操作之前，先进行嗅探
                    # sniff_on_start=True,
                    # 节点没有响应时，进行刷新，重新连接
@@ -19,9 +27,9 @@ es = Elasticsearch(['127.0.0.1:9200'],
                    )
 
 # 常量分页结果大小
-DICT_PAGE_SIZE = 10
-WEB_PAGE_SIZE = 10
-DEFAULT_PAGE_SIZE = 10
+DICT_PAGE_SIZE = config.get("dict_page_size", 10)
+WEB_PAGE_SIZE = config.get("web_page_size", 10)
+DEFAULT_PAGE_SIZE = config.get("default_page_size", 10)
 
 
 # Create your views here.
@@ -34,6 +42,7 @@ class DefaultView(View):
         return render(request, "also/index.html", context=context)
 
 
+# 搜索结果视图
 class ResultView(View):
 
     @classmethod
@@ -196,6 +205,7 @@ class ResultView(View):
             return render(request, "also/result_web.html", context=context)
 
 
+# 搜索推荐视图
 class SuggestView(View):
     """搜索建议部分"""
 
@@ -203,26 +213,34 @@ class SuggestView(View):
     def get(cls, request):
         sug_wd = request.GET.get("query")
         sug_limit = request.GET.get("limit")
-        elasticsearch_result = Search.es_search_suggest(search_wd=sug_wd, search_limit=sug_limit)
+        try:
+            elasticsearch_result = Search.es_search_suggest(search_wd=sug_wd, search_limit=sug_limit)
+        except (NotFoundError, ) as e:
+            sug = [{"label": "搜索一下", "score": 1}, {"label": "恺恩泰", "score": 1}]
         # print(elasticsearch_result)
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
         #        {"label": "中华人民共和国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"}]
-        sug = elasticsearch_result.get("result") if elasticsearch_result.get("error") == 0 else [{"label": "搜索一下"}]
+        else:
+            sug = elasticsearch_result.get("result") if elasticsearch_result.get("error") == 0 else [{"label": "搜索一下"}]
         return JsonResponse(sug, safe=False)
 
 
+# 页面未找到处理
 def page_not_found(request, exception):
     return render(request, 'also/404.html')
 
 
+# 页面权限被拒绝处理
 def page_permission_denied(request, exception):
     return render(request, 'also/404.html')
 
 
+# 服务内部错误处理
 def page_inter_error(request):
     return render(request, 'also/404.html')
 
 
+# es搜索处理
 class Search:
 
     @staticmethod
@@ -486,6 +504,8 @@ class Search:
             _body["count"] = es_query.get("_source").get("count") + 1
             _body["@ip"] = es_query.get("_source").get("@ip")
             _body["@timestamp"] = es_query.get("_source").get("@timestamp")
+            _body["deleted"] = es_query.get("_source").get("deleted")
+            _body["tags"] = es_query.get("_source").get("tags")
             # 更新数据;create需要指定id
             result = es.update(index="search_word", body={"doc": _body}, id=es_query.get("_id"))
         else:
@@ -494,6 +514,7 @@ class Search:
         # print(result)
 
 
+# 工具类
 class Utils:
     """工具类"""
 
