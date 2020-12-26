@@ -7,7 +7,8 @@
         {#查询结果展示item模板 result-list-1#}
         <div class="also">
             <!--m-->
-            <div class="result-content" data-srcid="{{ content.srcid }}" id="rank_{{ forloop.counter|counter:content_result_right.number }}"
+            <div class="result-content" data-srcid="{{ content.srcid }}"
+                 id="rank_{{ forloop.counter|counter:content_result_right.number }}"
                  data-tpl="result-list-1">
                 <h5 class="result-title text-info">{{ content.file_name|safe }}</h5>
                 <div class="result-body bg-dark p-1" style="word-break: break-all">
@@ -15,9 +16,11 @@
                     </h5>
                 </div>
                 <div class="result-footer">
-                    {{ content.create_time|truncatechars_html:10 }}&nbsp;|&nbsp;20kb&nbsp;|&nbsp;md&nbsp;|&nbsp;DESKTOP-LNTDROL&nbsp;|&nbsp;
+                    {{ content.create_time|truncatechars_html:10 }}&nbsp;|&nbsp;{{ content.size }}&nbsp;|&nbsp;
+                    {% if content.is_directory == True %}文件夹{% else %}文件{% endif %}&nbsp;|&nbsp;{{ content.dev_name }}&nbsp;|&nbsp;
                     {#                   已解决: 使用了clipboard.js,想要实现复制功能,如若还是无法复制,则请删除对应的引用#}
-                    <button type="button" class="btn btn-link p-0 btn-file-copy" data-clipboard-text="{{ content.path|safe }}">路径复制
+                    <button type="button" class="btn btn-link p-0 btn-file-copy"
+                            data-clipboard-text="{{ content.path_copy|safe }}">路径复制
                     </button>
                 </div>
                 <!--RANK:{{ forloop.counter|counter:content_result_right.number }}-->
@@ -29,16 +32,16 @@
 {% endblock %}
 {% block result_user_js %}
     {#复制粘贴使用#}
-<script type="text/javascript" src="{% static 'also/js/clipboard.min.js' %}"></script>
-<script>
+    <script type="text/javascript" src="{% static 'also/js/clipboard.min.js' %}"></script>
+    <script>
 
-    var clipboard = new ClipboardJS('.btn-file-copy');
+        var clipboard = new ClipboardJS('.btn-file-copy');
 
-    clipboard.on('success', function (e) {
-        console.log(e);
-    });
-    clipboard.on('error', function (e) {
-        console.log(e);
-    });
- </script>
+        clipboard.on('success', function (e) {
+            console.log(e);
+        });
+        clipboard.on('error', function (e) {
+            console.log(e);
+        });
+    </script>
 {% endblock %}

@@ -1,4 +1,4 @@
-PUT also_files
+PUT files
     {
      "aliases":{
         "file":{
@@ -45,6 +45,13 @@ PUT also_files
           "@timestamp":{
               "type":"date",
               "format":"strict_date_optional_time||epoch_millis"
+          },
+          "dev": {
+            "type": "text",
+            "analyzer": "ik_smart"
+          },
+           "size": {
+            "type": "keyword"
           }
         }
       }

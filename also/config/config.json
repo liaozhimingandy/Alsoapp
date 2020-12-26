@@ -1,8 +1,11 @@
 {
-  "elasticsearch_cluster": ["http://localhost:9200"],
+  "elasticsearch_cluster": [
+    "http://localhost:9200"
+  ],
   "dict_page_size": 10,
   "web_page_size": 10,
   "default_page_size": 10,
   "file_page_size": 10,
-  "suggest_page_size": 10
+  "suggest_page_size": 10,
+  "search_result_size": 10000
 }

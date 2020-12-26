@@ -11,7 +11,6 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConnectionError, NotFoundError
 
-
 # 配置文件
 # config_file = Path(["config", "config.json"])
 paths = ["also", "config", "config.json"]
@@ -30,6 +29,7 @@ es = Elasticsearch(config.get("elasticsearch_cluster"),
 DICT_PAGE_SIZE = config.get("dict_page_size", 10)
 WEB_PAGE_SIZE = config.get("web_page_size", 10)
 DEFAULT_PAGE_SIZE = config.get("default_page_size", 10)
+SEARCH_RESULT_SIZE = config.get("search_result_size", 1000)
 
 
 # Create your views here.
@@ -102,7 +102,8 @@ class ResultView(View):
             try:
                 es_search_result = Search.es_search_file(search_wd=search_wd).get("hits")
                 # print(es_search_result)
-            except (AttributeError, NotFoundError,):
+            except (AttributeError, NotFoundError,) as e:
+                print(e)
                 response = render(request, 'also/500.html', )
                 response.status_code = 500
                 return response
@@ -110,6 +111,7 @@ class ResultView(View):
                 content_result_right = list()
                 if es_search_result.get('total').get("value", 0) != 0:
                     for tmp_data in es_search_result.get("hits"):
+                        # print(tmp_data)
                         tmp_content = {"table_name": tmp_data.get('_index'),
                                        "file_name": tmp_data.get('highlight').get("file_name")[0] if tmp_data.get(
                                            'highlight').get(
@@ -117,13 +119,17 @@ class ResultView(View):
                                        "content": tmp_data.get('highlight').get("content")[0] if tmp_data.get(
                                            'highlight').get(
                                            "content", "") != "" else tmp_data.get("_source").get("content"),
-                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "desc", "") != "" else tmp_data.get("_source").get("desc"),
+                                       "size": "无" if tmp_data.get("_source").get("size") is None else tmp_data.get(
+                                           "_source").get("size"),
                                        "tags": tmp_data.get('highlight').get("tags")[0] if tmp_data.get(
                                            'highlight').get(
                                            "tags", "") != "" else tmp_data.get("_source").get("tags"),
-                                       "path": tmp_data.get('_source').get("path"),
+                                       "path": tmp_data.get('highlight').get("path")[0] if tmp_data.get(
+                                           'highlight').get(
+                                           "path", "") != "" else tmp_data.get("_source").get("path"),
+                                       "dev_name": tmp_data.get('_source').get("dev_name"),
+                                       "path_copy": tmp_data.get('_source').get("path"),
+                                       "is_directory": tmp_data.get('_source').get("is_directory"),
                                        "create_time": tmp_data.get('highlight').get("@timestamp")[0] if tmp_data.get(
                                            'highlight').get(
                                            "@timestamp", "") != "" else tmp_data.get("_source").get("@timestamp")}
@@ -215,7 +221,7 @@ class SuggestView(View):
         sug_limit = request.GET.get("limit")
         try:
             elasticsearch_result = Search.es_search_suggest(search_wd=sug_wd, search_limit=sug_limit)
-        except (NotFoundError, ) as e:
+        except (NotFoundError,) as e:
             sug = [{"label": "搜索一下", "score": 1}, {"label": "恺恩泰", "score": 1}]
         # print(elasticsearch_result)
         # sug = [{"label": "中国", "rgb": "(255, 174, 66)", "hex": "#FFAE42"},
@@ -284,7 +290,8 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="web", body=_query, size=1000, request_timeout=1, ignore=[400, ],
+            search_result = es.search(index="web", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=2,
+                                      ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -350,7 +357,8 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="dict", body=_query, size=1000, request_timeout=1, ignore=[400, ],
+            search_result = es.search(index="dict", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=2,
+                                      ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -368,7 +376,7 @@ class Search:
                     "must": [{
                         "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
                             "query": search_wd  # 搜索的字段和关键词
-                            , "fields": ["file_name", "desc", "content", "tags"]
+                            , "fields": ["file_name", "path", "content", "tags"]
                         }
                     },
                         {
@@ -378,7 +386,8 @@ class Search:
                     ]
                 }
             },
-            "_source": ["file_name", "desc", "content", "tags", "offical", "path", "@timestamp"],
+            "_source": ["file_name", "is_directory", "content", "tags", "offical", "path", "@timestamp", "size",
+                        "dev_name"],
             "highlight": {  # 结果高亮
                 "encoder": "html",
                 "fields": {
@@ -388,7 +397,7 @@ class Search:
                         "post_tags": [
                             "</em>"
                         ]},
-                    "desc": {
+                    "path": {
                         "pre_tags": [
                             "<em class=\"text-danger\">"
                         ],
@@ -416,7 +425,8 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="file", body=_query, size=1000, request_timeout=1, ignore=[400, ],
+            search_result = es.search(index="file", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=1,
+                                      ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
@@ -528,3 +538,8 @@ class Utils:
         else:
             ip = request.META.get('REMOTE_ADDR')  # 未使用代理获取IP
         return ip
+
+    # 遍历文件夹
+    @staticmethod
+    def get_file_name():
+        pass
