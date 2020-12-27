@@ -30,6 +30,7 @@ DICT_PAGE_SIZE = config.get("dict_page_size", 10)
 WEB_PAGE_SIZE = config.get("web_page_size", 10)
 DEFAULT_PAGE_SIZE = config.get("default_page_size", 10)
 SEARCH_RESULT_SIZE = config.get("search_result_size", 1000)
+TIME_OUT = config.get("time_out", 1)
 
 
 # Create your views here.
@@ -112,27 +113,30 @@ class ResultView(View):
                 if es_search_result.get('total').get("value", 0) != 0:
                     for tmp_data in es_search_result.get("hits"):
                         # print(tmp_data)
-                        tmp_content = {"table_name": tmp_data.get('_index'),
-                                       "file_name": tmp_data.get('highlight').get("file_name")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "file_name", "") != "" else tmp_data.get("_source").get("file_name"),
-                                       "content": tmp_data.get('highlight').get("content")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "content", "") != "" else tmp_data.get("_source").get("content"),
-                                       "size": "无" if tmp_data.get("_source").get("size") is None else tmp_data.get(
-                                           "_source").get("size"),
-                                       "tags": tmp_data.get('highlight').get("tags")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "tags", "") != "" else tmp_data.get("_source").get("tags"),
-                                       "path": tmp_data.get('highlight').get("path")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "path", "") != "" else tmp_data.get("_source").get("path"),
-                                       "dev_name": tmp_data.get('_source').get("dev_name"),
-                                       "path_copy": tmp_data.get('_source').get("path"),
-                                       "is_directory": tmp_data.get('_source').get("is_directory"),
-                                       "create_time": tmp_data.get('highlight').get("@timestamp")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "@timestamp", "") != "" else tmp_data.get("_source").get("@timestamp")}
+                        tmp_content = {
+                            "score": tmp_data.get('_score'),
+                            "table_name": tmp_data.get('_index'),
+                            "file_name": tmp_data.get('highlight').get("file_name")[0] if tmp_data.get(
+                                'highlight').get(
+                                "file_name", "") != "" else tmp_data.get("_source").get("file_name"),
+                            "content": tmp_data.get('highlight').get("content")[0] if tmp_data.get(
+                                'highlight').get(
+                                "content", "") != "" else tmp_data.get("_source").get("content"),
+                            "size": "无" if tmp_data.get("_source").get("size") is None else tmp_data.get(
+                                "_source").get("size"),
+                            "tags": tmp_data.get('highlight').get("tags")[0] if tmp_data.get(
+                                'highlight').get(
+                                "tags", "") != "" else tmp_data.get("_source").get("tags"),
+                            "path": tmp_data.get('highlight').get("path")[0] if tmp_data.get(
+                                'highlight').get(
+                                "path", "") != "" else tmp_data.get("_source").get("path"),
+                            "dev_name": tmp_data.get('_source').get("dev_name"),
+                            "path_copy": tmp_data.get('_source').get("path"),
+                            "is_directory": tmp_data.get('_source').get("is_directory"),
+                            "create_time": tmp_data.get('highlight').get("@timestamp")[0] if tmp_data.get(
+                                'highlight').get(
+                                "@timestamp", "") != "" else tmp_data.get("_source").get("@timestamp")
+                        }
                         # print(tmp_data.get('highlight').get("desc"))
                         content_result_right.append(tmp_content)
         else:
@@ -181,7 +185,7 @@ class ResultView(View):
             # 获取 url 后面的 page 参数的值, 首页不显示 page 参数, 默认值是 1
             page = request.GET.get('pn')
             content_result_right_page = paginator.page(page)
-            # todo: 注意捕获异常
+
         except PageNotAnInteger:
             # 如果请求的页数不是整数, 返回第一页。
             content_result_right_page = paginator.page(1)
@@ -290,9 +294,10 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="web", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=2,
+            search_result = es.search(index="web", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=TIME_OUT,
                                       ignore=[400, ],
-                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._score',
+                                                   'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
@@ -357,9 +362,10 @@ class Search:
             }
         }
         try:
-            search_result = es.search(index="dict", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=2,
+            search_result = es.search(index="dict", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=TIME_OUT,
                                       ignore=[400, ],
-                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._score',
+                                                   'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
@@ -376,7 +382,7 @@ class Search:
                     "must": [{
                         "multi_match": {  # 完全匹配搜索关键词，模糊匹配用match
                             "query": search_wd  # 搜索的字段和关键词
-                            , "fields": ["file_name", "path", "content", "tags"]
+                            , "fields": ["file_name", "path"]
                         }
                     },
                         {
@@ -404,30 +410,16 @@ class Search:
                         "post_tags": [
                             "</em>"
                         ]
-                    },
-                    "content": {
-                        "pre_tags": [
-                            "<em class=\"text-danger\">"
-                        ],
-                        "post_tags": [
-                            "</em>"
-                        ]
-                    },
-                    "tags": {
-                        "pre_tags": [
-                            "<em class=\"text-danger\">"
-                        ],
-                        "post_tags": [
-                            "</em>"
-                        ]
                     }
                 }
             }
         }
         try:
-            search_result = es.search(index="file", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=1,
+
+            search_result = es.search(index="file", body=_query, size=SEARCH_RESULT_SIZE, request_timeout=TIME_OUT,
                                       ignore=[400, ],
-                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._source',
+                                      filter_path=['hits.total', 'hits.hits._index', 'hits.hits._score',
+                                                   'hits.hits._source',
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
@@ -460,7 +452,7 @@ class Search:
             # ]
         }
         try:
-            search_result = es.search(index="word", body=_query, size=search_limit, request_timeout=1,
+            search_result = es.search(index="word", body=_query, size=search_limit, request_timeout=TIME_OUT,
                                       ignore=[400, ],
                                       filter_path=['hits.total', 'hits.hits._score', 'hits.hits._index',
                                                    'hits.hits._source',
@@ -488,7 +480,7 @@ class Search:
                 }
             }
         }
-        # todo: 完善用户搜索时写入数据库操作
+
         result = es.search(index="word", body=_body,
                            filter_path=['hits.total', "hits.hits._id", "hits.hits._source"])
         # if result.get("hits").get("total").get("value", 0) > 0:

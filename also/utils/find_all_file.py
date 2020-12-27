@@ -47,10 +47,10 @@ def find_all_file(dir_file):
             continue
 
         for _dir in dirs:
-            tmp_file_path = f"{dir_path}\\{_dir}"
+            tmp_file_path = os.path.join(dir_path, _dir)
             dev_name = os.popen("hostname").read()
             is_directory = True
-            print(tmp_file_path)
+            # print(tmp_file_path)
             # 写入到es数据库
             es.es_insert_file(file_name=_dir, content=None, file_path=tmp_file_path, dev_name=dev_name,
                               is_directory=is_directory)
@@ -60,23 +60,28 @@ def find_all_file(dir_file):
             # 过滤不需要的文件
             if not filter_file_pass(file):
                 continue
-            tmp_file_path = f"{dir_path}\\{file}"
+            tmp_file_path = os.path.join(dir_path, file).replace("\n", "")
             file_stat_info = os.stat(tmp_file_path)
             # print(f"文件名称:{file},文件路径:{tmp_file_path}, 文件路径:{str_of_size(file_stat_info.st_size)}")
             tmp_file_size = str_of_size(file_stat_info.st_size)
             tmp_file_content = None
-            if file.endswith(".log"):
-                with open(tmp_file_path) as f:
-                    tmp_file_content = f.readlines()
             dev_name = os.popen("hostname").read()
             is_directory = False
-            size = str_of_size(file_stat_info.st_size)
-            print(file)
+            if file.endswith(".txt"):
+                with open(tmp_file_path) as f:
+                    try:
+                        tmp_file_content = f.readlines()
+                    except Exception as e:
+                        print(e)
+                        tmp_file_content = None
+
+            # size = str_of_size(file_stat_info.st_size)
+            # print(file)
             # print(str_of_size(file_stat_info.st_size))
             # print(file_stat_info.st_type)
             # print(file_stat_info.st_ctime)
             # 写入到es数据库
-            es.es_insert_file(file_name=file, content=tmp_file_content, file_path=tmp_file_path, size=size,
+            es.es_insert_file(file_name=file, content=tmp_file_content, file_path=tmp_file_path, size=tmp_file_size,
                               dev_name=dev_name,
                               is_directory=is_directory)
             count_file += 1
@@ -86,9 +91,10 @@ def find_all_file(dir_file):
 
 # 过滤用户自定义的文件或目录
 def filter_file_pass(file: str = "") -> bool:
-    filter_file = [".git", ".idea", "$RECYCLE", ".kgtemp", ".cfg", ".krc", ".tmp", ".dll"]
+    filter_file = ["log", ".git", ".idea", "$RECYCLE", ".kgtemp", ".cfg", ".krc", ".tmp", ".dll", ".xmp", "url", "vmcx",
+                   "Hyper-V", "windows", ".kg", r"KuGou\temp", "prproj", "__pycache__", ".pyc", "django", "venv"]
     for tmp_filter in filter_file:
-        if file.find(tmp_filter) >= 0:
+        if file.lower().find(tmp_filter.lower()) >= 0:
             return False
         if file.startswith("$"):
             return False
@@ -96,9 +102,16 @@ def filter_file_pass(file: str = "") -> bool:
 
 
 def main():
-    base = r"D:\\"
-    find_all_file(base)
+    # todo:盘符问题需要解决,会多一个\\
+    # base = r"D:\\"
+    # find_all_file(base)
     # print(filter_file_pass(base))
+    # 遍历所有盘符C: 65
+    for t in range(65, 91):
+        drive_name = chr(t) + ":\\"
+        if os.path.isdir(drive_name):
+            print(drive_name)
+            find_all_file(dir_file=drive_name)
 
 
 if __name__ == "__main__":

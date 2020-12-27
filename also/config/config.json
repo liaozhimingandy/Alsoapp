@@ -7,5 +7,6 @@
   "default_page_size": 10,
   "file_page_size": 10,
   "suggest_page_size": 10,
-  "search_result_size": 10000
+  "search_result_size": 1000,
+  "timeout": 1
 }
