@@ -27,8 +27,7 @@ PUT search_word
             "type": "ip"
           },
           "tags": {
-            "type": "text",
-            "analyzer": "ik_smart"
+            "type": "keyword"
           },
           "deleted": {
             "type": "boolean"

@@ -82,20 +82,23 @@ class ResultView(View):
                 content_result_right = list()
                 if es_search_result.get('total').get("value", 0) != 0:
                     for tmp_data in es_search_result.get("hits"):
-                        tmp_content = {"table_name": tmp_data.get('_index'),
-                                       "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "code", "") != "" else tmp_data.get("_source").get("code"),
-                                       "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "name", "") != "" else tmp_data.get("_source").get("name"),
-                                       "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "desc", "") != "" else tmp_data.get("_source").get("desc"),
-                                       "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get(
-                                           'highlight').get(
-                                           "note", "") != "" else tmp_data.get("_source").get("note"),
-                                       "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))}
+                        tmp_content = {
+                            "score": tmp_data.get('_score'),
+                            "table_name": tmp_data.get('_index'),
+                            "code": tmp_data.get('highlight').get("code")[0] if tmp_data.get(
+                                'highlight').get(
+                                "code", "") != "" else tmp_data.get("_source").get("code"),
+                            "name": tmp_data.get('highlight').get("name")[0] if tmp_data.get(
+                                'highlight').get(
+                                "name", "") != "" else tmp_data.get("_source").get("name"),
+                            "desc": tmp_data.get('highlight').get("desc")[0] if tmp_data.get(
+                                'highlight').get(
+                                "desc", "") != "" else tmp_data.get("_source").get("desc"),
+                            "note": tmp_data.get('highlight').get("note")[0] if tmp_data.get(
+                                'highlight').get(
+                                "note", "") != "" else tmp_data.get("_source").get("note"),
+                            "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time()))
+                        }
                         # print(tmp_data.get('highlight').get("desc"))
                         content_result_right.append(tmp_content)
             # print(content_result_right)

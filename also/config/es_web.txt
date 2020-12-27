@@ -42,12 +42,10 @@ PUT links
             "type": "keyword"
           },
           "offical": {
-            "type": "text",
-            "analyzer": "ik_smart"
+            "type": "keyword"
           },
           "tags": {
-            "type": "text",
-            "analyzer": "ik_smart"
+            "type": "text"
           },
           "deleted": {
             "type": "boolean"

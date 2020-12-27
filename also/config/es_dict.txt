@@ -33,12 +33,10 @@ PUT dict_sex
             "analyzer": "ik_max_word"
           },
           "offical": {
-            "type": "text",
-            "analyzer": "ik_smart"
+            "type": "keyword"
           },
           "tags": {
-            "type": "text",
-            "analyzer": "ik_smart"
+            "type": "keyword"
           },
           "deleted": {
             "type": "boolean"

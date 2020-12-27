@@ -1,5 +1,19 @@
 {% extends 'result_base.html' %}
 {% load filters %}
+
+{#通知部分#}
+{% block advise %}
+    <div class="alert alert-info alert-dismissible fade show" role="alert" data-msg="alert-info">
+        <h5>温馨提示:</h5>
+        <hr/>
+        1.你可以联系我们对某些字典信息进行索引删除;<br/>
+        2.如若需要收录您的标准字典信息,请联系我们;
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endblock %}
+
 {#字典匹配结果部分#}
 {% block result_content %}
     <div class="card border-secondary mb-1">
@@ -7,11 +21,11 @@
             <table class="table table-hover table-striped table-bordered">
                 <thead class="table-primary">
                 <tr>
-                    <th scope="col">序号</th>
-                    <th scope="col">编码</th>
-                    <th scope="col">名称</th>
-                    <th scope="col">备注</th>
-                    <th scope="col">来源表</th>
+                    <th scope="col" class="text-center">序号</th>
+                    <th scope="col" class="text-center">编码</th>
+                    <th scope="col" class="text-center">名称</th>
+                    <th scope="col" class="text-center">备注</th>
+                    <th scope="col" class="text-center">来源表</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -24,6 +38,7 @@
                         <td>{{ content.note|safe }}</td>
                         <td>{{ content.desc|safe }}</td>
                     </tr>
+                    <!--RANK:{{ forloop.counter|counter:content_result_right.number }}, SCORE: {{ content.score }}-->
                 {% endfor %}
                 </tbody>
             </table>

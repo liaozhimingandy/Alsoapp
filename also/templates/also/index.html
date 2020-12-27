@@ -6,6 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>搜索一下</title>
+    <link rel="icon" class="js-site-favicon" type="image/svg+xml"
+          href="{% static 'also/imgs/logo.svg' %}">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{% static 'also/css/bootstrap.min.css' %}">
     <!--   自动填充样式-->
@@ -14,8 +16,16 @@
 </head>
 <body>
 <div class="container-fluid">
+    <div class="row" style="margin-top: 8%;">
+        <div class="col-12 text-center">
+            <a href="{% url 'alsoapp:default' %}" class="nav-link">
+                <img src="{% static 'also/imgs/logo.png' %}" alt="logo" class="rounded border-0 mb-2" height="80px;">
+            </a>
+        </div>
+    </div>
+
     {#    搜索框位置#}
-    <form onsubmit="return false;" style="margin-top: 13%;" name="form-search">
+    <form onsubmit="return false;" name="form-search">
         <div class="form-row justify-content-center">
             <div class="col-md-8 col-lg-5">
                 {% csrf_token %}
@@ -33,14 +43,7 @@
     </form>
 </div>
 <!--    footer-->
-<footer class="fixed-bottom bg-light pt-2 pl-2 pr-2" style="height: 40px">
-    <div class="float-right d-none d-sm-block">
-        <b>Version</b> 1.0<B>&bull;</B>测试版
-    </div>
-    {#        模板自定义时间#}
-    <strong>Copyright &copy; <span id="years_now" class="font-weight-bold">{% now "Y" %}</span> <a
-            href="#">zhiming</a><B>&bull;</B></strong>All&nbsp;rights&nbsp;reserved.<B>&bull;</B>您的ip:{{ ip }}
-</footer>
+{% include 'component/footer.html' %}
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
 <script src="{% static 'also/js/jquery.min.js' %}"></script>
