@@ -8,5 +8,23 @@
   "file_page_size": 10,
   "suggest_page_size": 10,
   "search_result_size": 1000,
-  "timeout": 1
+  "timeout": 1,
+  "file_suffixes":[
+            ".png", ".txt", ".doc", ".xls", ".ppt", ".docx", ".xlsx", ".pptx", ".md",
+            ".html", ".py", ".java", ".php", ".jsp", ".sql", ".htm",
+            ".iso", ".wps", ".bat", ".sqlite",
+            ".pdf", ".jpg", ".gif", ".tiff", ".swf", ".bmp", ".ico", ".bmp",
+            ".flv", ".rmvb", ".mp4", ".rmvb", ".rm", ".avi", ".3gp", ".mov", ".m4v",
+            ".mp3", ".wma",
+            ".rar", ".zip", ".bak",
+            ".exe", ".sh",
+            ".torrent"
+        ],
+  "filter_dir": [
+            "$Recycle.Bin", "DRIVERS", "WIN", "LenovoDrivers", "KuaituoBox", "OneDriveTemp", "PerfLogs",
+            "ProgramData", "OneDrive", "face", "emoji", "workwnd", "common", "eng",
+            "$Recycle.Bin", "Program Files (x86)", "AppData", "Program Files",
+            "12306Bypass_1.13.3", "$RECYCLE.BIN", "Hyper-V", "Cache", "Temp", "qycache", ".git"
+            , "venv"
+        ]
 }
