@@ -23,7 +23,6 @@ from ElasticSearch import ElasticSearch
 # 配置文件
 # config_file = Path(["config", "config.json"])
 paths = ["..", "config", "config.json"]
-# config = json.loads(Path.cwd().joinpath(*paths).read_text())
 
 
 class DocSpider:
@@ -61,12 +60,12 @@ class DocSpider:
             #                   is_directory=is_directory)
             # count_dir += 1
             # 常见文件后缀名格式配置文件:文件config.json
-            suffixs = set(self.__config.get("file_suffixes", []))
+            suffix = set(self.__config.get("file_suffixes", []))
             # 遍历该目录下的所有文件
             for file in files:
                 # 获取文件后缀名
                 suffix = os.path.splitext(file)[-1]
-                if suffix.lower() not in suffixs:
+                if suffix.lower() not in suffix:
                     continue
                 tmp_file_path = os.path.join(dir_path, file).replace("\n", "")
                 file_stat_info = os.stat(tmp_file_path)
@@ -81,10 +80,10 @@ class DocSpider:
                         except Exception as e:
                             print(e)
                             tmp_file_content = None
-                print(f"文件名称:{file},文件路径:{tmp_file_path}, 文件路径:{tmp_file_size}")
+                # print(f"文件名称:{file},文件路径:{tmp_file_path}, 文件路径:{tmp_file_size}")
                 # 写入到es数据库
-                # self.__es.es_insert_file(file_name=file, content=tmp_file_content, file_path=tmp_file_path, size=tmp_file_size,
-                #                   dev_name=dev_name, is_directory=is_directory)
+                self.__es.es_insert_file(file_name=file, content=tmp_file_content, file_path=tmp_file_path,
+                                         size=tmp_file_size, dev_name=dev_name, is_directory=is_directory)
                 count_file += 1
             count_dir += 1
             # break
@@ -92,15 +91,17 @@ class DocSpider:
 
     # 文件数据大小单位转换
     @classmethod
-    def str_of_size(cls, file_size):
+    def str_of_size(cls, file_size: int) -> str:
         """
-        递归实现，精确为最大单位值 + 小数点后三位
+        递归实现，精确为最大单位值 + 小数点后两位
+        :param file_size:文件原始大小单位是字节B
+        :return:
         """
         units = ["B", "KB", "MB", "GB", "TB", "PB"]
-        size = 1024.0
-        for i in range(len(units)):
+        size = 1024
+        for unit in units:
             if (file_size / size) < 1:
-                return "{:.2f}{}".format(file_size, units[i])
+                return "{:.2f}{}".format(file_size, unit)
             file_size = file_size / size
 
     # 遍历所有盘符
@@ -119,3 +120,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # print(DocSpider.str_of_size(26107904))
