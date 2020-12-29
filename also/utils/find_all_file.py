@@ -64,8 +64,8 @@ class DocSpider:
             # 遍历该目录下的所有文件
             for file in files:
                 # 获取文件后缀名
-                suffix = os.path.splitext(file)[-1]
-                if suffix.lower() not in suffix:
+                tmp_file_suffix = os.path.splitext(file)[-1]
+                if tmp_file_suffix.lower() not in suffix:
                     continue
                 tmp_file_path = os.path.join(dir_path, file).replace("\n", "")
                 file_stat_info = os.stat(tmp_file_path)
@@ -114,8 +114,10 @@ class DocSpider:
 
 
 def main():
+    print("正在采集文件...")
     finder = DocSpider()
     finder.loop_disk()
+    # finder.find_all_file(dir_file=r"D:\Rhapsody\Rhapsody IDE 6")
 
 
 if __name__ == "__main__":
