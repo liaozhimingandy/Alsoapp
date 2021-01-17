@@ -18,6 +18,9 @@ import os
 import json
 from pathlib import Path
 
+# 日志打印
+from loguru import logger
+
 from ElasticSearch import ElasticSearch
 
 # 配置文件
@@ -41,9 +44,9 @@ class DocSpider:
             """
             dirpath 是一个string，代表目录的路径，
             dirs 是一个list，包含了dirpath下所有子目录的名字。
-            filenames 是一个list，包含了非目录文件的名字
+            filenames 是一个list，包含了非目录文件的名字,
+            排除配置文件config.json中指定的目录
             """
-            "排除配置文件config.json中指定的目录"
             filter_file = self.__config.get("filter_dir", [])
             dirs[:] = [d for d in set(dirs) - set(filter_file)]
             # "采集指定目录下的文件"
@@ -60,12 +63,12 @@ class DocSpider:
             #                   is_directory=is_directory)
             # count_dir += 1
             # 常见文件后缀名格式配置文件:文件config.json
-            suffix = set(self.__config.get("file_suffixes", []))
+            suffix_file = set(self.__config.get("file_suffixes", []))
             # 遍历该目录下的所有文件
             for file in files:
                 # 获取文件后缀名
                 suffix = os.path.splitext(file)[-1]
-                if suffix.lower() not in suffix:
+                if suffix.lower() not in suffix_file:
                     continue
                 tmp_file_path = os.path.join(dir_path, file).replace("\n", "")
                 file_stat_info = os.stat(tmp_file_path)
@@ -85,6 +88,7 @@ class DocSpider:
                 self.__es.es_insert_file(file_name=file, content=tmp_file_content, file_path=tmp_file_path,
                                          size=tmp_file_size, dev_name=dev_name, is_directory=is_directory)
                 count_file += 1
+                logger.info(f"完成第{count_file}文件收录!(文件名称:{file})")
             count_dir += 1
             # break
         print(f"共记录到{count_file}个文件,遍历了{count_dir}个目录!")

@@ -1,4 +1,4 @@
-PUT dict_sex
+# PUT dict_sex
     {
      "aliases":{
         "dict":{
@@ -21,6 +21,10 @@ PUT dict_sex
           }
           },
           "note": {
+            "type": "text",
+            "analyzer": "ik_max_word"
+          },
+          "from_table": {
             "type": "text",
             "analyzer": "ik_max_word"
           },

@@ -1,6 +1,8 @@
 import time
 import json
 from pathlib import Path
+# 日志模块
+from loguru import logger
 
 from django.shortcuts import render
 from django.views.generic import View  # 导入类试图
@@ -30,7 +32,7 @@ DICT_PAGE_SIZE = config.get("dict_page_size", 10)
 WEB_PAGE_SIZE = config.get("web_page_size", 10)
 DEFAULT_PAGE_SIZE = config.get("default_page_size", 10)
 SEARCH_RESULT_SIZE = config.get("search_result_size", 1000)
-TIME_OUT = config.get("time_out", 1)
+TIME_OUT = config.get("time_out", 3)
 
 
 # Create your views here.
@@ -52,22 +54,31 @@ class ResultView(View):
         # 获取请求ip
         ip = Utils.get_ip(request)
         context["ip"] = ip
+        # looger其它像info等不生效,只有error生效
+        logger.info(f"访问者ip:{ip}")
+        # print(f"访问者ip:{ip}")
         # 处理含有多个关键词问题
         context["wd"] = "".join(request.GET.getlist("wd"))
         context["tn"] = request.GET.get("tn")
         if any((context["wd"] == "", context["tn"] is None)):
             return HttpResponseRedirect("/")
-        # 将用户查询的数据写入search_word表
-        Search.es_insert_suggest(sug_word=context["wd"], ip=ip)
+
+        # print(context["wd"])
         # 限制关键词为40个汉字
-        if len(context["wd"].encode("utf8")) >= 80:
-            search_wd = context["wd"].encode("utf8")[0:80].decode("utf8")
-            context["msg"] = f"\"{search_wd[-3:]}\"及其后面的字词均被忽略，因为我们的查询限制在40个汉字以内"
+        # if len(context["wd"].encode("utf8")) >= 80:
+        #     search_wd = context["wd"].encode("utf8")[0:80].decode("utf8")
+        #     context["msg"] = f"\"{search_wd[-3:]}\"及其后面的字词均被忽略，因为我们的查询限制在40个汉字以内"
+        if len(context["wd"]) > 40:
+            search_wd = context["wd"][:40]
+            context["msg"] = f"'{search_wd[-3:]}'及其后面的字词均被忽略，因为我们的查询限制在40个汉字以内"
         else:
             search_wd = context["wd"]
+        # 将用户查询的数据写入search_word表
+        Search.es_insert_suggest(sug_word=context["wd"], ip=ip)
         # 解析因escape编码的数据
         # search_wd = "".join([(len(i) > 0 and chr(int(i, 16)) or "") for i in search_wd.split('%u')])
-        context["wd"] = search_wd
+        # 传递给模板的用户关键词继续使用用户输入的关键词
+        context["wd"] = "".join(request.GET.getlist("wd"))
 
         start_time = time.time()
         # elasticsearch查询数据
@@ -163,11 +174,14 @@ class ResultView(View):
                                 'highlight', "") == "" or tmp_data.get('highlight').get("desc",
                                                                                         "") == "") else
                             tmp_data.get('highlight').get("desc")[0],
-                            # "resume": "北青-北京头条记者提问，近日，美国总统特朗普将美国会此前通过的“外国公司问责法案”签署成法。该法要求加严在美上市外国公司向美国监管机构披露信息的义务。美相关议员表示，该法主要针对中国。中方对此有何评论？",
                             "url": tmp_data.get('_source').get("url"),
                             "create_time": time.strftime('%Y-%m-%d', time.localtime(time.time())),
                             "srcid": tmp_data.get("_id", "null")
                         }
+                        # 日期格式化
+                        tmp_content['create_time'] = time.strftime('%Y年%m月%d日',
+                                                                   time.strptime(tmp_content['create_time'],
+                                                                                 '%Y-%m-%d'))
                         content_result_right.append(tmp_content)
 
         end_time = time.time()
@@ -268,7 +282,7 @@ class Search:
                         }
                     }, {
                         # 过滤掉已删除的记录
-                        "term": {"deleted": "false"}
+                        "term": {"deleted": "true"}
                     }
                     ]
                 }
@@ -426,6 +440,7 @@ class Search:
                                                    'hits.hits.highlight',
                                                    'hits.hits._id'], scroll='1m')  # index不指定,代表所有索引下进行查找
         except ConnectionError as e:
+            # 此file因为查询时间过长容易导致超时,后面需要优化
             print(e)
             return
         else:

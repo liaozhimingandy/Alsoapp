@@ -1,4 +1,4 @@
-PUT search_word
+# PUT search_word
     {
      "aliases":{
         "search_wd":{

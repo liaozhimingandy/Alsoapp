@@ -30,6 +30,7 @@
                 </thead>
                 <tbody>
                 {% for content in content_result_right %}
+                    <!--m-->
                     <tr>
                         {#                        使用自定义过滤器,对分页序号进行累加处理#}
                         <th scope="row"> {{ forloop.counter|counter:content_result_right.number }}</th>
@@ -38,6 +39,7 @@
                         <td>{{ content.note|safe }}</td>
                         <td>{{ content.desc|safe }}</td>
                     </tr>
+                    <!--n-->
                     <!--RANK:{{ forloop.counter|counter:content_result_right.number }}, SCORE: {{ content.score }}-->
                 {% endfor %}
                 </tbody>

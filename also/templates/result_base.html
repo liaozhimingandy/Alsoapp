@@ -29,8 +29,7 @@
 
         {#.also {#}
         {#    margin-bottom: 20px;#}
-        {
-        #}#}
+
 
         cite {
             font-style: normal;
@@ -49,7 +48,7 @@
 <body>
 <div class="container-fluid bg-white">
     <!-- Navbar -->
-    <nav class="navbar navbar-expand navbar-white border-bottom border-primary fixed-top"
+    <nav class="navbar navbar-expand navbar-white border-bottom border-danger fixed-top"
          style="background: #E9EBEE;" id="also-nav">
         <!-- Left navbar links -->
         <ul class="navbar-nav">
@@ -76,7 +75,7 @@
         </form>
     </nav>
     <!-- /.navbar -->
-    <!--    结果展示-->
+    <!-- 结果展示开始 -->
     <div class="wrapper_wrapper">
         <div class="row ml-5">
             <h1>搜索结果</h1>
@@ -108,12 +107,15 @@
                 </div>
             </div>
         </div>
-        <div class="row pl-3">
 
-            {#            如果关键词过长,则显示对应提示#}
-            {% if msg is not None %}
+        {#            如果关键词过长,则显示对应提示#}
+        {% if msg is not None %}
+            <div class="row pl-3">
                 <h6><b>{{ msg }}</b></h6>
-            {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="row pl-3">
             {#            如果搜索总条数为0#}
             {% if result_total == 0 %}
                 <h6>sorry,我们收录的记录还比较少,请换个关键词试试吧</h6>
@@ -141,7 +143,7 @@
                 {% endblock %}
             </div>
         </div>
-
+        <!-- page start-->
         <div class="row">
             {% if result_total != 0 %}
                 <div class="col-lg-5">
@@ -188,9 +190,9 @@
                 </div>
             {% endif %}
         </div>
-
+        <!-- page end-->
     </div>
-
+    <!-- 结果展示结束 -->
     <!--    footer-->
     {% include 'component/footer.html' %}
 </div>
@@ -239,8 +241,7 @@
         if (t >= 50) {
             {#添加阴影#}
             $("#also-nav").addClass("shadow");
-        }
-        if (t < 50) {
+        } else {
             $("#also-nav").removeClass("shadow");
         }
     }
