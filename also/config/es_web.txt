@@ -38,7 +38,10 @@ PUT links
               }
             }
           },
-          "img_url": {
+          "logo_url": {
+            "type": "keyword"
+          },
+           "img_url": {
             "type": "keyword"
           },
           "offical": {
@@ -58,8 +61,8 @@ PUT links
       }
     }
 
- 测试数据
- POST links/_doc
+测试数据
+POST links/_doc
 {
   "title": "B百度",
   "desc": "test",

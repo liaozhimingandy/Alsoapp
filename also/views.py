@@ -27,7 +27,7 @@ es = Elasticsearch(config.get("elasticsearch_cluster"),
                    # sniffer_timeout=60
                    )
 
-# 常量分页结果大小
+# 从config文件中获取常量分页结果大小
 DICT_PAGE_SIZE = config.get("dict_page_size", 10)
 WEB_PAGE_SIZE = config.get("web_page_size", 10)
 DEFAULT_PAGE_SIZE = config.get("default_page_size", 10)
@@ -537,7 +537,6 @@ class Search:
 # 工具类
 class Utils:
     """工具类"""
-
     # X-Forwarded-For:简称XFF头，它代表客户端，也就是HTTP的请求端真实的IP，只有在通过了HTTP 代理或者负载均衡服务器时才会添加该项。
     @staticmethod
     def get_ip(request):
